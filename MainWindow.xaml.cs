@@ -300,6 +300,24 @@ public partial class MainWindow : Window
     }
     private void SyntaxCheckButton_Click(object sender, RoutedEventArgs e)
     {
+#if DEBUG
+        SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
+        {
+            SetErrCount(SyntaxChecker.GetErrorCount());
+        });
+#else
+        try
+        {
+            SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
+            {
+                SetErrCount(SyntaxChecker.GetErrorCount());
+            });
+        }
+        catch
+        {
+            SetErrCount(GetLocalizedString("InternalErr"));
+        }
+#endif
         ShowErrorWindow();
     }
     void ShowErrorWindow()

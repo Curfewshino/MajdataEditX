@@ -346,7 +346,6 @@ public partial class MainWindow : Window
             SetErrCount(GetLocalizedString("InternalErr"));
         }
 #endif
-
     }
     void SetErrCount<T>(T eCount) => Dispatcher.Invoke(() => ErrCount.Content = $"{eCount}");
     private void ReadWaveFromFile()
@@ -435,6 +434,8 @@ public partial class MainWindow : Window
             };
             if ((bool)saveDialog.ShowDialog()!) maidataDir = new FileInfo(saveDialog.FileName).DirectoryName!;
         }
+
+        SyntaxCheck();
 
         SimaiProcess.SaveData(maidataDir + "/maidata.bak.txt");
         SaveSetting();
@@ -592,10 +593,12 @@ public partial class MainWindow : Window
     private void ChartChangeTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         Console.WriteLine("TextChanged");
-        //SyntaxCheck(); //不要进行定期检查（疑似莫名其妙卡死原因）
+        //SyntaxCheck(); //不要进行定期检查（疑似快速修改谱面内容时莫名其妙卡死原因）
         Dispatcher.Invoke(
             delegate
             {
+                if (!ErrCount.Content.ToString()!.EndsWith("?"))
+                    SetErrCount(ErrCount.Content.ToString() + "?");
                 SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
                 DrawWave();
             }
