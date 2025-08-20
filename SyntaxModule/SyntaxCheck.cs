@@ -75,7 +75,7 @@ namespace MajdataEdit.SyntaxModule
 
                 foreach (var s in simaiChart)
                 {
-                    string simaiStr = s.Replace("\n", "");
+                    string simaiStr = s.Replace("\n", "").Trim();
 
                     if (string.IsNullOrEmpty(s))
                         continue;
