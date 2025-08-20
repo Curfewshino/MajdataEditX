@@ -312,6 +312,7 @@ public partial class MainWindow : Window
             SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
             {
                 SetErrCount(SyntaxChecker.GetErrorCount());
+                Dispatcher.Invoke(() => { ShowErrorWindow(); });
             });
         }
         catch
