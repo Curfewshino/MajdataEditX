@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FIles" xml:space="preserve">
+    <value>File</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Close Viewer?</value>
   </data>
@@ -140,9 +143,6 @@
   </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
-  </data>
-  <data name="FIles" xml:space="preserve">
-    <value>File</value>
   </data>
   <data name="Github" xml:space="preserve">
     <value>GitHub</value>
@@ -492,5 +492,8 @@ Click OK to start render.</value>
   </data>
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[Warning] The chart should end with "E" : "{0}"({1}L,{2}C)</value>
+  </data>
+  <data name="LaunchMaiMuriDX" xml:space="preserve">
+    <value>Launch MaiMuriDX</value>
   </data>
 </root>

@@ -321,6 +321,9 @@ public partial class MainWindow : Window
         }
 #endif
     }
+    private void LaunchMaiMuriDXButton_Click(object sender, RoutedEventArgs e)
+    {
+    }
     void ShowErrorWindow()
     {
         var mcrWindow = new MuriCheckResult

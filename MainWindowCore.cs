@@ -325,6 +325,7 @@ public partial class MainWindow : Window
         MenuMuriCheck.IsEnabled = true;
         Menu_ExportRender.IsEnabled = true;
         SyntaxCheckButton.IsEnabled = true;
+        MaiMuriDX.IsEnabled = true;
         AutoSaveManager.Of().SetAutoSaveEnable(true);
         SetSavedState(true);
         SyntaxCheck();

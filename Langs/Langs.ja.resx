@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FIles" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Viewを閉しますか？</value>
   </data>
@@ -140,9 +143,6 @@
   </data>
   <data name="Error" xml:space="preserve">
     <value>エラー</value>
-  </data>
-  <data name="FIles" xml:space="preserve">
-    <value>ファイル</value>
   </data>
   <data name="Github" xml:space="preserve">
     <value>GitHub</value>
@@ -241,11 +241,11 @@
   <data name="EditorLanguage" xml:space="preserve">
     <value>言語</value>
   </data>
-  <data name="NoEditorSetting" xml:space="preserve">
-    <value>エディタの初期設定を完了してください</value>
-  </data>
   <data name="EditorSetting" xml:space="preserve">
     <value>エディタの設定</value>
+  </data>
+  <data name="NoEditorSetting" xml:space="preserve">
+    <value>エディタの初期設定を完了してください</value>
   </data>
   <data name="CheckDone1" xml:space="preserve">
     <value>Check Finished, {0} Multi-Notes Error，{1} Slide-Tap Error. You can get more information in the Result Window.
@@ -490,6 +490,21 @@ Open Browser to download latest update of Majdata?</value>
     <value>When enabled, the Slide Track will disappear with the star instead of one judgment area after another.</value>
     <comment>Translation required</comment>
   </data>
+  <data name="PlayMethod" xml:space="preserve">
+    <value>自動遊び</value>
+  </data>
+  <data name="PlayMethodClassic" xml:space="preserve">
+    <value>初期設定</value>
+  </data>
+  <data name="PlayMethodDisabled" xml:space="preserve">
+    <value>しない</value>
+  </data>
+  <data name="PlayMethodDJAuto" xml:space="preserve">
+    <value>シミュレーション (DJAuto)</value>
+  </data>
+  <data name="PlayMethodRandom" xml:space="preserve">
+    <value>シミュレーション (ランダム)</value>
+  </data>
   <data name="SyntaxCheckLevel1" xml:space="preserve">
     <value>無効にする</value>
   </data>
@@ -508,19 +523,7 @@ Open Browser to download latest update of Majdata?</value>
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[警告] チャートは「E」で終わる必要があります : "{0}"({1}L,{2}C)</value>
   </data>
-    <data name="PlayMethod" xml:space="preserve">
-    <value>自動遊び</value>
-  </data>
-  <data name="PlayMethodClassic" xml:space="preserve">
-    <value>初期設定</value>
-  </data>
-  <data name="PlayMethodDisabled" xml:space="preserve">
-    <value>しない</value>
-  </data>
-  <data name="PlayMethodDJAuto" xml:space="preserve">
-    <value>シミュレーション (DJAuto)</value>
-  </data>
-  <data name="PlayMethodRandom" xml:space="preserve">
-    <value>シミュレーション (ランダム)</value>
+  <data name="LaunchMaiMuriDX" xml:space="preserve">
+    <value>MaiMuriDX</value>
   </data>
 </root>

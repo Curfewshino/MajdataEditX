@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FIles" xml:space="preserve">
+    <value>文件</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -140,9 +143,6 @@
   </data>
   <data name="Error" xml:space="preserve">
     <value>错误</value>
-  </data>
-  <data name="FIles" xml:space="preserve">
-    <value>文件</value>
   </data>
   <data name="Github" xml:space="preserve">
     <value>GitHub</value>
@@ -438,37 +438,19 @@
   <data name="RecoverThis" xml:space="preserve">
     <value>恢复</value>
   </data>
-  <data name="AbnormalTerminationInformation" xml:space="preserve">
-    <value>检测到上次Majdata未正常关闭，是否要打开自动保存恢复窗口？</value>
-  </data>
   <data name="RecoveryDoubleCheck" xml:space="preserve">
     <value>确认要将此数据（自动保存于{0}）恢复至{1}吗？
 （恢复之前的maidata.txt会被更名为maidata.before_recovery.txt）</value>
     <comment>{0}=自动保存时间，{1}=原maidata路径</comment>
+  </data>
+  <data name="AbnormalTerminationInformation" xml:space="preserve">
+    <value>检测到上次Majdata未正常关闭，是否要打开自动保存恢复窗口？</value>
   </data>
   <data name="EnableSmoothSlideAnime" xml:space="preserve">
     <value>平滑Slide动画</value>
   </data>
   <data name="SmoothSlideAnimeTooltip" xml:space="preserve">
     <value>启用后，Slide轨迹会随着星星消失，而不是以判定区为单位消失</value>
-  </data>
-  <data name="SyntaxCheckLevel1" xml:space="preserve">
-    <value>禁用</value>
-  </data>
-  <data name="SyntaxCheckLevel2" xml:space="preserve">
-    <value>警告</value>
-  </data>
-  <data name="SyntaxCheckLevel3" xml:space="preserve">
-    <value>开启</value>
-  </data>
-  <data name="SyntaxDisplay" xml:space="preserve">
-    <value>语法检查</value>
-  </data>
-  <data name="InternalErr" xml:space="preserve">
-    <value>内部错误</value>
-  </data>
-  <data name="SyntaxWarning" xml:space="preserve">
-    <value>[警告] 谱面应当以"E"结尾："{0}"({1}L,{2}C)</value>
   </data>
   <data name="PlayMethod" xml:space="preserve">
     <value>模拟方式</value>
@@ -502,5 +484,8 @@
   </data>
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[警告] 谱面应当以"E"结尾："{0}"({1}L,{2}C)</value>
+  </data>
+  <data name="LaunchMaiMuriDX" xml:space="preserve">
+    <value>启动MaiMuriDX</value>
   </data>
 </root>
