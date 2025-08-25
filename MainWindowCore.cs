@@ -75,6 +75,7 @@ public partial class MainWindow : Window
     private SoundSetting soundSetting = new();
     private bool UpdateCheckLock;
 
+    public float originFreq = 44100f;
 
     //*UI DRAWING
     private readonly Timer visualEffectRefreshTimer = new(1);
@@ -279,6 +280,7 @@ public partial class MainWindow : Window
         //soundSetting.Close();
         var decodeStream = Bass.BASS_StreamCreateFile(audioPath, 0L, 0L, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
         bgmStream = BassFx.BASS_FX_TempoCreate(decodeStream, BASSFlag.BASS_FX_FREESOURCE);
+        Bass.BASS_ChannelGetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, ref originFreq);
         //Bass.BASS_StreamCreateFile(audioPath, 0L, 0L, BASSFlag.BASS_SAMPLE_FLOAT);
 
         Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_VOL, editorSetting!.Default_BGM_Level);
@@ -1062,6 +1064,8 @@ public partial class MainWindow : Window
                 waveStopMonitorTimer.Start();
                 visualEffectRefreshTimer.Start();
                 startAt = DateTime.Now;
+
+                Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, originFreq * GetPlaybackSpeed());
                 Bass.BASS_ChannelPlay(bgmStream, false);
                 Task.Run(() =>
                 {
@@ -1140,8 +1144,18 @@ public partial class MainWindow : Window
 
     private float GetPlaybackSpeed()
     {
-        var speed = 0f;
-        Bass.BASS_ChannelGetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_TEMPO, ref speed);
+        var speed = PlayBackSpeedSelector.SelectedItem switch
+        {
+            ComboBoxItem { Content: "0.10x" } => -90,
+            ComboBoxItem { Content: "0.25x" } => -75,
+            ComboBoxItem { Content: "0.50x" } => -50,
+            ComboBoxItem { Content: "0.75x" } => -25,
+            ComboBoxItem { Content: "1.00x" } => 0,
+            ComboBoxItem { Content: "1.50x" } => 50,
+            ComboBoxItem { Content: "1.75x" } => 75,
+            ComboBoxItem { Content: "2.00x" } => 100,
+            _ => 0
+        };
         return speed / 100f + 1f;
     }
 

@@ -208,6 +208,18 @@
                  Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
                  HorizontalContentAlignment="Center" TextChanged="OffsetTextBox_TextChanged"
                  MouseWheel="OffsetTextBox_MouseWheel" Grid.Row="1" Grid.Column="1" />
+        <ComboBox x:Name="PlayBackSpeedSelector" Margin="7,241,0,0" 
+                  HorizontalAlignment="Left" Width="87" Height="21" VerticalAlignment="Top" SelectedIndex="4"
+                  Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
+                  Template="{DynamicResource DarkComboBox}" Grid.Row="1" Grid.Column="1">
+            <ComboBoxItem Content="0.10x" />
+            <ComboBoxItem Content="0.25x" />
+            <ComboBoxItem Content="0.50x" />
+            <ComboBoxItem Content="0.75x" />
+            <ComboBoxItem Content="1.00x" />
+            <ComboBoxItem Content="1.50x" />
+            <ComboBoxItem Content="2.00x" />
+        </ComboBox>
         <Button x:Name="PlayAndPauseButton" Content="▶" HorizontalAlignment="Left" Margin="55,0,0,90" Width="38"
                 Click="PlayAndPauseButton_Click" Height="38" VerticalAlignment="Bottom"
                 Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
