@@ -126,6 +126,12 @@
   <data name="RenderEnable" xml:space="preserve">
     <value>レンダリングを開く</value>
   </data>
+  <data name="Position" xml:space="preserve">
+    <value>ポジション</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>メッセージ</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Viewを閉しますか？</value>
   </data>
@@ -529,10 +535,53 @@ Open Browser to download latest update of Majdata?</value>
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[Syntax警告] チャートは「E」で終わる必要があります : "{0}"</value>
   </data>
-  <data name="Position" xml:space="preserve">
-    <value>ポジション</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="MuriDXSErrorOverlap" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="Message" xml:space="preserve">
-    <value>メッセージ</value>
+  <data name="MuriDXSErrorOverlapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXSErrorSlideHeadTap" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXSErrorSlideHeadTapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXSErrorTapOnSlide" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXSErrorTapOnSlideDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorMultiTouch" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorMultiTouchDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideTooFast" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideTooFastDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorOverlap" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorOverlapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideHeadTap" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideHeadTapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorTapOnSlide" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="MuriDXDErrorTapOnSlideDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>

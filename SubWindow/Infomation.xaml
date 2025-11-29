@@ -27,7 +27,7 @@
         <TextBox x:Name="DesignTextbox" HorizontalAlignment="Left" Height="24" Margin="346,114,0,0" TextWrapping="Wrap"
                  VerticalAlignment="Top" Width="264" VerticalContentAlignment="Center" />
         <Image x:Name="SaltImage" HorizontalAlignment="Left" Height="201" Margin="42,37,0,0" VerticalAlignment="Top"
-               Width="201" Source="/MajdataEdit;component/Image/bg_dummy.jpg" MouseDown="SaltImage_MouseDown" />
+               Width="201" Source="/MajdataEdit;component/Resources/bg_dummy.jpg" MouseDown="SaltImage_MouseDown" />
         <Button x:Name="ReadTrackButton" Content="{lex:Loc LoadFromTrack}" Height="24" Margin="42,243,0,0"
                 VerticalAlignment="Top" RenderTransformOrigin="0.476,-3.674"
                 Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"

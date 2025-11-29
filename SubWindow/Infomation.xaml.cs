@@ -44,7 +44,7 @@ public partial class Infomation : Window
             LoadImageFromByte(File.ReadAllBytes(MainWindow.maidataDir + "/bg.jpg"));
         else
             SaltImage.Source =
-                new BitmapImage(new Uri("pack://application:,,,/MajdataEdit;component/Image/bg_dummy.jpg"));
+                new BitmapImage(new Uri("pack://application:,,,/MajdataEdit;component/Resources/bg_dummy.jpg"));
     }
 
     private void LoadImageFromByte(byte[] data)

@@ -3,13 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:MajdataEdit"
              xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
              mc:Ignorable="d"
              StartupUri="MainWindow.xaml"
              DispatcherUnhandledException="Application_DispatcherUnhandledException">
     <Application.Resources>
-
-
         <ControlTemplate x:Key="DarkButton" TargetType="{x:Type ButtonBase}">
             <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
@@ -461,10 +460,10 @@
         </ControlTemplate>
 
 
-        <SolidColorBrush x:Key="ButtonForeground" Color="White" />
-        <SolidColorBrush x:Key="HelperForeground" Color="#569CD6" />
-        <SolidColorBrush x:Key="WindowBackground" Color="#FF1F1F1F" />
-        <SolidColorBrush x:Key="ButtonsBackground" Color="#FF303030" Opacity="0.6" />
-
+        <SolidColorBrush x:Key="LabelForeground" Color="{x:Static local:ThemeConfig.LabelForeground}" />
+        <SolidColorBrush x:Key="ButtonForeground" Color="{x:Static local:ThemeConfig.ButtonForeground}" />
+        <SolidColorBrush x:Key="HelperForeground" Color="{x:Static local:ThemeConfig.HelperForeground}" />
+        <SolidColorBrush x:Key="WindowBackground" Color="{x:Static local:ThemeConfig.WindowBackground}" />
+        <SolidColorBrush x:Key="ButtonsBackground" Color="{x:Static local:ThemeConfig.ButtonsBackground}" />
     </Application.Resources>
 </Application>

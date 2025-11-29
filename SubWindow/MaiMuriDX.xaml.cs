@@ -47,6 +47,8 @@ public partial class LaunchMaiMuriDX : Window
             s = result[0];
             t = result[1];
 
+            var I18N = MainWindow.GetLocalizedString;
+
             foreach (var item in s)
             {
                 Error error;
@@ -54,17 +56,18 @@ public partial class LaunchMaiMuriDX : Window
                 {
                     error = new Error(ErrorType.MuriDXS,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[叠键无理] “{item["affected"]["note"]}” 与 “{item["cause"]["note"]}” 重叠",
+                            string.Format(
+                                I18N("MuriDXSErrorOverlap"), 
+                                item["affected"]["note"],
+                                item["cause"]["note"]
+                            ),
 
                         string.Format(
-                            "[叠键无理] {0}cb处\"{1}\"(L{2},C{3}) 与 ",
+                            I18N("MuriDXSErrorOverlapDetail"),
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format(
-                            "{0}cb处\"{1}\"(L{2},C{3}) 重叠 ",
+                            item["affected"]["col"], 
                             item["cause"]["combo"],
                             item["cause"]["note"],
                             item["cause"]["line"],
@@ -76,46 +79,48 @@ public partial class LaunchMaiMuriDX : Window
                 {
                     error = new Error(ErrorType.MuriDXS,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[外键无理] “{item["affected"]["note"]}” 可能被 “{item["cause"]["note"]}” 蹭到",
+                            string.Format(
+                                I18N("MuriDXSErrorSlideHeadTap"),
+                                item["affected"]["note"],
+                                item["cause"]["note"]
+                            ),
 
                         string.Format(
-                            "[外键无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 ",
+                            I18N("MuriDXSErrorSlideHeadTapDetail"),
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format(
-                            "{0}cb处\"{1}\"(L{2},C{3}) 蹭到\n",
+                            item["affected"]["col"],
                             item["cause"]["combo"],
                             item["cause"]["note"],
                             item["cause"]["line"],
-                            item["cause"]["col"]
-                        ) +
-                        string.Format("({0:+0;-0} ms)", item["delta"] * 1000 / 180));
+                            item["cause"]["col"],
+                            item["delta"] * 1000 / 180
+                        ));
                     SErrorList.Add(error);
                 }
                 else if (item["type"] == "TapOnSlide")
                 {
                     error = new Error(ErrorType.MuriDXS,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[撞尾无理] “{item["affected"]["note"]}” 可能被 “{item["cause"]["note"]}” 蹭到",
+                            string.Format(
+                                I18N("MuriDXSErrorTapOnSlide"),
+                                item["affected"]["note"],
+                                item["cause"]["note"]
+                            ),
 
                         string.Format(
-                            "[撞尾无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 ",
+                            I18N("MuriDXSErrorTapOnSlideDetail"),
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format(
-                            "{0}cb处\"{1}\"(L{2},C{3}) 蹭到\n",
+                            item["affected"]["col"],
                             item["cause"]["combo"],
                             item["cause"]["note"],
                             item["cause"]["line"],
-                            item["cause"]["col"]
-                        ) +
-                        string.Format("({0:+0;-0} ms)", item["delta"] * 1000 / 180));
+                            item["cause"]["col"],
+                            item["delta"] * 1000 / 180
+                        ));
                     SErrorList.Add(error);
                 }
             }
@@ -132,7 +137,7 @@ public partial class LaunchMaiMuriDX : Window
                 if (item["type"] == "MultiTouch")
                 {
                     string msg_notes = "";
-                    foreach (var note in item["cause"])
+                    foreach (var note in item["cause"]) 
                     {
                         msg_notes += string.Format(
                             "\"{2}\"(L{0},C{1})",
@@ -142,11 +147,13 @@ public partial class LaunchMaiMuriDX : Window
                     }
                     error = new Error(ErrorType.MuriDXD,
                         new Position((int)item["cause"][0]["col"], (int)item["cause"][0]["line"]),
-                        $"[多押无理] 可能形成{item["hand_count"]}押",
+                        string.Format(I18N("MuriDXDErrorMultiTouch"), item["hand_count"]),
 
-                        time + 
-                        $"[多押无理] 下列note可能形成{item["hand_count"]}押\n    " + 
-                        msg_notes
+                        string.Format(I18N("MuriDXDErrorMultiTouchDetail"),
+                            time,
+                            item["hand_count"],
+                            msg_notes
+                        )
                         );
                     SErrorList.Add(error);
                 }
@@ -154,20 +161,18 @@ public partial class LaunchMaiMuriDX : Window
                 {
                     error = new Error(ErrorType.MuriDXD,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[内屏无理] “{item["affected"]["note"]}” 被提前蹭掉",
+                        string.Format(I18N("MuriDXDErrorSlideTooFast"), item["affected"]["note"]),
 
-                        time + 
                         string.Format(
-                            "[内屏无理] {0}cb处\"{1}\"(L{2},C{3}) 被提前蹭掉\n",
+                            I18N("MuriDXDErrorSlideTooFastDetail"),
+                            time,
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format("CP区间±{0:0.0} ms，相关判定区如下:\n", 
-                            item["--critical_delta"] * 1000.0 / 180
-                        ) +
-                        item["--msg_areas"]
+                            item["affected"]["col"],
+                            item["--critical_delta"] * 1000.0 / 180,
+                            item["--msg_areas"]
+                        )
                         );
                     SErrorList.Add(error);
                 }
@@ -175,65 +180,59 @@ public partial class LaunchMaiMuriDX : Window
                 {
                     error = new Error(ErrorType.MuriDXD,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[叠键无理] “{item["affected"]["note"]}” 似乎与另一个note重叠",
+                        string.Format(I18N("MuriDXDErrorOverlap"), item["affected"]["note"], ""),
 
-                        time +
                         string.Format(
-                            "[叠键无理] {0}cb处\"{1}\"(L{2},C{3}) 似乎与另一个note重叠\n",
+                            I18N("MuriDXDErrorOverlapDetail"),
+                            time,
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format("({0:+0;-0} ms)", item["delta"] * 1000 / 180));
+                            item["affected"]["col"],
+                            item["delta"] * 1000 / 180
+                        ));
                     SErrorList.Add(error);
                 }
                 else if (item["type"] == "SlideHeadTap")
                 {
                     error = new Error(ErrorType.MuriDXD,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[外键无理] “{item["affected"]["note"]}” 被 “{item["cause"]["note"]}” 蹭到",
+                        string.Format(I18N("MuriDXDErrorSlideHeadTap"), item["affected"]["note"], item["cause"]["note"]),
 
-                        time + 
                         string.Format(
-                            "[外键无理] {0}cb处\"{1}\"(L{2},C{3}) 被 ",
+                            I18N("MuriDXDErrorSlideHeadTapDetail"),
+                            time,
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format(
-                            "{0}cb处\"{1}\"(L{2},C{3}) 蹭到\n",
+                            item["affected"]["col"],
                             item["cause"]["combo"],
                             item["cause"]["note"],
                             item["cause"]["line"],
-                            item["cause"]["col"]
-                        ) +
-                        string.Format("({0:+0;-0} ms)", item["delta"] * 1000 / 180));
+                            item["cause"]["col"],
+                            item["delta"] * 1000 / 180
+                        ));
                     SErrorList.Add(error);
                 }
                 else if (item["type"] == "TapOnSlide")
                 {
                     error = new Error(ErrorType.MuriDXD,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
-                        $"[撞尾无理] “{item["affected"]["note"]}” 被 “{item["cause"]["note"]}” 蹭到",
+                        string.Format(I18N("MuriDXDErrorTapOnSlide"), item["affected"]["note"], item["cause"]["note"]),
 
-                        time + 
                         string.Format(
-                            "[撞尾无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 ",
+                            I18N("MuriDXDErrorTapOnSlideDetail"),
+                            time,
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"]
-                        ) +
-                        string.Format(
-                            "{0}cb处\"{1}\"(L{2},C{3}) 蹭到\n",
+                            item["affected"]["col"],
                             item["cause"]["combo"],
                             item["cause"]["note"],
                             item["cause"]["line"],
-                            item["cause"]["col"]
-                        ) +
-                        string.Format("({0:+0;-0} ms)", item["delta"] * 1000 / 180));
+                            item["cause"]["col"],
+                            item["delta"] * 1000 / 180
+                        ));
                     SErrorList.Add(error);
                 }
             }

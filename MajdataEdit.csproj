@@ -6,10 +6,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
 
-        <Version>4.5.2</Version>
+        <Version>4.5.1</Version>
         <Company></Company>
         <Authors>bbben</Authors>
-        <PackageProjectUrl>https://github.com/LingFeng-bbben/MajdataEdit</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/re-poem/MajdataEditX</PackageProjectUrl>
         <Copyright>Copyright © 2021</Copyright>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
         <UseApplicationTrust>false</UseApplicationTrust>
@@ -20,9 +20,9 @@
       <Optimize>False</Optimize>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="Image\bg_dummy.jpg" />
-      <None Remove="Image\outline_find_replace_white_24dp.png" />
-      <None Remove="Image\outline_search_white_24dp.png" />
+      <None Remove="Resources\bg_dummy.jpg" />
+      <None Remove="Resources\outline_find_replace_white_24dp.png" />
+      <None Remove="Resources\outline_search_white_24dp.png" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="pythonnet" Version="3.0.5" />
@@ -59,8 +59,8 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-      <Resource Include="Image\bg_dummy.jpg" />
-      <Resource Include="Image\outline_find_replace_white_24dp.png" />
-      <Resource Include="Image\outline_search_white_24dp.png" />
+      <Resource Include="Resources\bg_dummy.jpg" />
+      <Resource Include="Resources\outline_find_replace_white_24dp.png" />
+      <Resource Include="Resources\outline_search_white_24dp.png" />
     </ItemGroup>
 </Project>

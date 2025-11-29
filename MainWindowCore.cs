@@ -1533,7 +1533,7 @@ public partial class MainWindow : Window
         try
         {
             requestHandler(
-                WebControl.RequestGETAsync("http://api.github.com/repos/LingFeng-bbben/MajdataView/releases/latest"));
+                WebControl.RequestGETAsync("http://api.github.com/repos/re-poem/MajdataViewX/releases/latest"));
         } catch {
             // 网络请求失败
             if (!onStart) MessageBox.Show(GetLocalizedString("RequestFail"), GetLocalizedString("CheckUpdate"));

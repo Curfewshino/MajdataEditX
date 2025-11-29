@@ -12,18 +12,12 @@
     Title="MajdataEdit" Height="589" Width="720.5" Loaded="Window_Loaded" Closing="Window_Closing" MinHeight="517"
     WindowStartupLocation="CenterScreen">
 
-    <Grid Margin="0" DragEnter="Grid_DragEnter" AllowDrop="True" Drop="Grid_Drop">
+    <Grid Margin="0" DragEnter="Grid_DragEnter" AllowDrop="True" Drop="Grid_Drop" Background="{StaticResource WindowBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="0*"/>
             <RowDefinition Height="501*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.Background>
-            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                <GradientStop Color="#FF526675" />
-                <GradientStop Color="#FF735573" Offset="1" />
-            </LinearGradientBrush>
-        </Grid.Background>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="358*"/>
@@ -31,12 +25,12 @@
         </Grid.ColumnDefinitions>
 
         <Label x:Name="ErrCount" Grid.Column="1" Content="0" 
-            Foreground="White" 
+            Foreground="{DynamicResource ButtonForeground}" 
             HorizontalAlignment="Left" HorizontalContentAlignment="Center"
             Margin="44,201,0,0" Grid.RowSpan="2" VerticalAlignment="Top" Width="53" Height="25" PreviewMouseDoubleClick="SyntaxCheckButton_Click"/>
 
         <Label x:Name="ErrCount_Label" Content="Error" 
-               Foreground="White" 
+               Foreground="{DynamicResource LabelForeground}" 
                HorizontalAlignment="Left" HorizontalContentAlignment="Left"
                Margin="2,201,0,0" Grid.RowSpan="2" VerticalAlignment="Top" Width="45" PreviewMouseDoubleClick="SyntaxCheckButton_Click" Grid.Column="1" RenderTransformOrigin="0.5,0.5">
             <Label.RenderTransform>
@@ -149,7 +143,7 @@
                 <RoutedUICommand x:Key="MirrorCcw45" Text="MirrorCcw45" />
             </RichTextBox.Resources>
             <RichTextBox.Background>
-                <SolidColorBrush Color="#FF171717" Opacity="0.3" />
+                <SolidColorBrush Color="#FF050505" Opacity="0.3" />
             </RichTextBox.Background>
             <!--Bindings are dynamicly added via ReadEditorSetting()-->
             <RichTextBox.CommandBindings>
@@ -172,7 +166,7 @@
             <FlowDocument />
         </RichTextBox>
         <Label x:Name="TimeLabel" Content="0:00" HorizontalAlignment="Left" Height="64" Margin="0,16,0,0"
-               VerticalAlignment="Top" Width="105" Foreground="White" FontFamily="Bahnschrift Light" FontSize="50"
+               VerticalAlignment="Top" Width="105" Foreground="{DynamicResource ButtonForeground}" FontFamily="Bahnschrift Light" FontSize="50"
                VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2" />
         <ComboBox x:Name="LevelSelector" Margin="7,116,0,0" SelectionChanged="ComboBox_SelectionChanged"
                   HorizontalAlignment="Left" Width="87" Height="21" VerticalAlignment="Top"
@@ -196,13 +190,13 @@
                 Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
                 Template="{DynamicResource DarkButton}" Grid.Row="1" Grid.Column="1" />
         <Label Content="{lex:Loc Difficulty}" HorizontalAlignment="Left" Height="25" Margin="2,142,0,0"
-               VerticalAlignment="Top" Width="45" Foreground="White" Grid.Row="1" Grid.Column="1" />
+               VerticalAlignment="Top" Width="45" Foreground="{DynamicResource LabelForeground}" Grid.Row="1" Grid.Column="1" />
         <TextBox x:Name="LevelTextBox" HorizontalAlignment="Left" Height="25" Margin="47,142,0,0" TextWrapping="Wrap"
                  VerticalAlignment="Top" Width="46" VerticalContentAlignment="Center"
                  TextChanged="LevelTextBox_TextChanged" Background="{DynamicResource ButtonsBackground}"
                  Foreground="{DynamicResource ButtonForeground}" HorizontalContentAlignment="Center" Grid.Row="1" Grid.Column="1" />
         <Label Content="{lex:Loc Offset}" HorizontalAlignment="Left" Height="25" Margin="2,172,0,0"
-               VerticalAlignment="Top" Width="45" Foreground="White" Grid.Row="1" Grid.Column="1" />
+               VerticalAlignment="Top" Width="45" Foreground="{DynamicResource LabelForeground}" Grid.Row="1" Grid.Column="1" />
         <TextBox x:Name="OffsetTextBox" HorizontalAlignment="Left" Height="25" Margin="47,172,0,0" TextWrapping="Wrap"
                  VerticalAlignment="Top" Width="46" VerticalContentAlignment="Center"
                  Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
@@ -229,28 +223,28 @@
                 Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
                 Template="{DynamicResource DarkButton}" Grid.Row="1" Grid.Column="1" />
         <Label x:Name="NoteNowText" Content="行" HorizontalAlignment="Left" Margin="0,73,0,0" VerticalAlignment="Top"
-               Foreground="White" Width="105" HorizontalContentAlignment="Center" Height="25" Grid.Row="1" Grid.ColumnSpan="2" />
+               Foreground="{DynamicResource LabelForeground}" Width="105" HorizontalContentAlignment="Center" Height="25" Grid.Row="1" Grid.ColumnSpan="2" />
         <Button x:Name="Op_Button" Content="{lex:Loc RecMode}" Height="30" Margin="6,0,0,165"
                 VerticalAlignment="Bottom" RenderTransformOrigin="1.1,0.25" Click="Op_Button_Click"
                 HorizontalAlignment="Left" Width="87" Template="{DynamicResource DarkButton}"
                 Foreground="{DynamicResource ButtonForeground}" Background="{DynamicResource ButtonsBackground}"
                 ToolTip="{lex:Loc RecordModeDiscrp}" Grid.Row="1" Grid.Column="1" />
         <Label Content="{lex:Loc TouchSpeed}" MouseUp="SettingLabel_MouseUp" HorizontalAlignment="Left" Height="24"
-               Margin="2,0,0,200" VerticalAlignment="Bottom" Width="80" Foreground="White"
+               Margin="2,0,0,200" VerticalAlignment="Bottom" Width="80" Foreground="{DynamicResource LabelForeground}"
                RenderTransformOrigin="9.667,-2.284" ToolTip="{lex:Loc SpeedSettingTooltip}" Grid.Row="1" Grid.Column="1" />
         <Label x:Name="ViewerTouchSpeed" MouseUp="SettingLabel_MouseUp" HorizontalAlignment="Left" Height="24"
                Margin="62,0,0,200" Content="7.0" VerticalAlignment="Bottom" Width="35"
                VerticalContentAlignment="Center" Foreground="{DynamicResource ButtonForeground}"
                HorizontalContentAlignment="Center" ToolTip="{lex:Loc SpeedSettingTooltip}" Grid.Row="1" Grid.Column="1" />
         <Label Content="{lex:Loc Speed}" MouseUp="SettingLabel_MouseUp" HorizontalAlignment="Left" Height="24"
-               Margin="2,0,0,226" VerticalAlignment="Bottom" Width="60" Foreground="White"
+               Margin="2,0,0,226" VerticalAlignment="Bottom" Width="60" Foreground="{DynamicResource LabelForeground}"
                RenderTransformOrigin="9.667,-2.284" ToolTip="{lex:Loc SpeedSettingTooltip}" Grid.Row="1" Grid.Column="1" />
         <Label x:Name="ViewerSpeed" MouseUp="SettingLabel_MouseUp" HorizontalAlignment="Left" Height="24"
                Margin="62,0,0,226" Content="7.0" VerticalAlignment="Bottom" Width="35"
                VerticalContentAlignment="Center" Foreground="{DynamicResource ButtonForeground}"
                HorizontalContentAlignment="Center" ToolTip="{lex:Loc SpeedSettingTooltip}" Grid.Row="1" Grid.Column="1" />
         <Label Content="{lex:Loc Brightness}" MouseUp="SettingLabel_MouseUp" HorizontalAlignment="Left" Height="24"
-               Margin="2,0,0,250" VerticalAlignment="Bottom" Width="60" Foreground="White"
+               Margin="2,0,0,250" VerticalAlignment="Bottom" Width="60" Foreground="{DynamicResource LabelForeground}"
                RenderTransformOrigin="9.667,-2.284" ToolTip="{lex:Loc SpeedSettingTooltip}" Grid.Row="1" Grid.Column="1" />
         <Label x:Name="ViewerCover" MouseUp="SettingLabel_MouseUp" Height="24" Margin="62,0,0,250" Content="0.6"
                VerticalAlignment="Bottom" VerticalContentAlignment="Center"
@@ -264,13 +258,13 @@
             <TextBox x:Name="InputText" HorizontalAlignment="Left" Height="22" Margin="10,10,0,0" TextWrapping="Wrap"
                      VerticalAlignment="Top" Width="231" VerticalContentAlignment="Center" />
             <Image x:Name="Find_icon" HorizontalAlignment="Left" Height="22" Margin="246,10,0,0"
-                   VerticalAlignment="Top" Width="26" Source="Image/outline_search_white_24dp.png"
+                   VerticalAlignment="Top" Width="26" Source="Resources/outline_search_white_24dp.png"
                    MouseDown="Find_icon_MouseDown" ToolTip="{lex:Loc FindNext}" />
             <Image x:Name="Replace_icon" HorizontalAlignment="Left" Height="22" Margin="246,37,0,0"
-                   VerticalAlignment="Top" Width="26" Source="Image/outline_find_replace_white_24dp.png"
+                   VerticalAlignment="Top" Width="26" Source="Resources/outline_find_replace_white_24dp.png"
                    MouseDown="Replace_icon_MouseDown" ToolTip="{lex:Loc ReplaceNext}" />
             <Label x:Name="FindClose" Content="^" Height="19" Margin="127,53,127,-3" VerticalAlignment="Top"
-                   FontSize="11" FontWeight="Bold" Foreground="White" MouseDown="FindClose_MouseDown" />
+                   FontSize="11" FontWeight="Bold" Foreground="{DynamicResource ButtonForeground}" MouseDown="FindClose_MouseDown" />
             <TextBox x:Name="ReplaceText" HorizontalAlignment="Left" Height="22" Margin="10,37,0,0" TextWrapping="Wrap"
                      VerticalAlignment="Top" Width="231" VerticalContentAlignment="Center" />
         </Grid>
@@ -279,7 +273,7 @@
             <StackPanel.Background>
                 <SolidColorBrush Color="Black" Opacity="0.8" />
             </StackPanel.Background>
-            <Label Content="{lex:Loc OverwriteMode}" Foreground="White" />
+            <Label Content="{lex:Loc OverwriteMode}" Foreground="{DynamicResource ButtonForeground}" />
             <Label Foreground="{DynamicResource HelperForeground}" Margin="3,0,0,0">
                 <Label.ToolTip>
                     <ToolTip>
