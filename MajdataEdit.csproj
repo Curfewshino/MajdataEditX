@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net6.0-windows</TargetFramework>
+        <TargetFramework>net6.0-windows7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
@@ -24,7 +24,13 @@
       <None Remove="Resources\outline_find_replace_white_24dp.png" />
       <None Remove="Resources\outline_search_white_24dp.png" />
     </ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
     <ItemGroup>
+        <PackageReference Include="DiffMatchPatch" Version="1.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
         <PackageReference Include="pythonnet" Version="3.0.5" />
         <PackageReference Include="radio42.Bass.Net.core" Version="2.4.17.5" />
         <PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />

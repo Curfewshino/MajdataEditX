@@ -231,6 +231,14 @@ public partial class MainWindow : Window
     {
         TogglePlayAndPause(PlayMethod.Record);
     }
+    private async void Menu_ToggleChartShare_Click(object sender, RoutedEventArgs e)
+    {
+        await ToggleChartShare();
+    }
+    private async void Menu_ConnectChartShare_Click(object sender, RoutedEventArgs e)
+    {
+        await ConnectToChartServer("127.0.0.1", 8014);
+    }
 
     private void MirrorLeftRight_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
@@ -624,10 +632,11 @@ public partial class MainWindow : Window
         if (!isPlaying) DrawWave();
     }
 
-    private void FumenContent_TextChanged(object sender, TextChangedEventArgs e)
+    private async void FumenContent_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (GetRawFumenText() == "" || isLoading) return;
         SetSavedState(false);
+        await SyncChartServer();
         if (chartChangeTimer.Interval < 33)
         {
             SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());

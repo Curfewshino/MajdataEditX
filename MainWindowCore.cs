@@ -1,8 +1,21 @@
-﻿using System.Diagnostics;
+﻿using DiffMatchPatch;
+using DiscordRPC;
+using MajdataEdit.AutoSaveModule;
+using MajdataEdit.ChartShare;
+using MajdataEdit.SyntaxModule;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Semver;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Timers;
@@ -14,22 +27,16 @@ using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 using System.Windows.Threading;
-using DiscordRPC;
-using MajdataEdit.AutoSaveModule;
-using MajdataEdit.SyntaxModule;
-using Microsoft.Win32;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Semver;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WPFLocalizeExtension.Engine;
 using WPFLocalizeExtension.Extensions;
+using static System.Net.Mime.MediaTypeNames;
 using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
 using DashStyle = System.Drawing.Drawing2D.DashStyle;
+using Font = System.Drawing.Font;
 using LinearGradientBrush = System.Drawing.Drawing2D.LinearGradientBrush;
 using Pen = System.Drawing.Pen;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
@@ -39,6 +46,10 @@ namespace MajdataEdit;
 
 public partial class MainWindow : Window
 {
+    private bool ShareMode = false;
+    private bool isHost = false;
+    private string originMaidataDir = ""; //ShareMode && Host Only
+
     private const string majSettingFilename = "majSetting.json";
     private const string editorSettingFilename = "EditorSetting.json";
     public static readonly string MAJDATA_VERSION_STRING = $"v{Assembly.GetExecutingAssembly().GetName().Version!.ToString(3)}";
@@ -46,6 +57,7 @@ public partial class MainWindow : Window
 
     public static string maidataDir = "";
     public static string audioDir = "";
+    public static bool useOgg = false;
 
     //float[] wavedBs;
     private readonly short[][] waveRaws = new short[3][];
@@ -82,6 +94,12 @@ public partial class MainWindow : Window
 
     private WriteableBitmap? WaveBitmap;
 
+    //Chart Share
+    private HubConnection? _client;    // 客户端对象
+    private bool _isRemoteUpdate = false; // 防死循环的锁
+    private string _shadowText = ""; // 谱面文本同步缓冲
+    private diff_match_patch _dmp = new diff_match_patch();
+
     //*TEXTBOX CONTROL
     private string GetRawFumenText()
     {
@@ -109,6 +127,8 @@ public partial class MainWindow : Window
             paragraph.Inlines.Add(line);
             FumenContent.Document.Blocks.Add(paragraph);
         }
+
+        _shadowText = content;
 
         isLoading = false;
     }
@@ -246,12 +266,14 @@ public partial class MainWindow : Window
     }
 
     //*FILE CONTROL
-    private void initFromFile(string path) //file name should not be included in path
+    private async void initFromFile(string path) //file name should not be included in path
     {
+        if (ChartServer.App != null) await ToggleChartShare();
+
         if (soundSetting != null) soundSetting.Close();
         if (editorSetting == null) ReadEditorSetting();
 
-        var useOgg = File.Exists(path + "/track.ogg");
+        useOgg = File.Exists(path + "/track.ogg");
 
         var audioPath = path + "/track" + (useOgg ? ".ogg" : ".mp3");
         audioDir = audioPath;
@@ -333,6 +355,120 @@ public partial class MainWindow : Window
         AutoSaveManager.Of().SetAutoSaveEnable(true);
         SetSavedState(true);
         SyntaxCheck();
+
+        SetShareMode(false);
+    }
+
+    private async Task initFromShare(string fileUrl, GuestInitDto data)
+    {
+        if (soundSetting != null) soundSetting.Close();
+        if (editorSetting == null) ReadEditorSetting();
+
+        var basePath = Environment.CurrentDirectory + "/Sharing";
+
+        useOgg = data.UseOgg;
+
+        HttpClient httpClient = new HttpClient();
+
+        // 下载音频
+        var trackName = "track" + (useOgg ? ".ogg" : ".mp3");
+        string localAudioPath = Path.Combine(basePath, trackName);
+        using (var stream = await httpClient.GetStreamAsync(fileUrl + "/" + trackName))
+        using (var fs = new FileStream(localAudioPath, FileMode.Create))
+        {
+            await stream.CopyToAsync(fs);
+        }
+
+        //下载MajSettings
+        string localSettingPath = Path.Combine(basePath, majSettingFilename);
+        byte[] settingBytes = await httpClient.GetByteArrayAsync(fileUrl + "/" + majSettingFilename);
+        await File.WriteAllBytesAsync(localSettingPath, settingBytes);
+
+        if (isHost) originMaidataDir = maidataDir;
+        maidataDir = basePath;
+        audioDir = localAudioPath;
+        SetRawFumenText("");
+        if (bgmStream != -1024)
+        {
+            Bass.BASS_ChannelStop(bgmStream);
+            Bass.BASS_StreamFree(bgmStream);
+        }
+
+        //soundSetting.Close();
+        var decodeStream = Bass.BASS_StreamCreateFile(audioDir, 0L, 0L, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
+        bgmStream = BassFx.BASS_FX_TempoCreate(decodeStream, BASSFlag.BASS_FX_FREESOURCE);
+        Bass.BASS_ChannelGetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, ref originFreq);
+        //Bass.BASS_StreamCreateFile(audioPath, 0L, 0L, BASSFlag.BASS_SAMPLE_FLOAT);
+
+        var info = Bass.BASS_ChannelGetInfo(bgmStream);
+        if (info.freq != 44100) MessageBox.Show(GetLocalizedString("Warn44100Hz"), GetLocalizedString("Attention"));
+        ReadWaveFromFile();
+        SimaiProcess.ClearData();
+
+        //if (!SimaiProcess.ReadData(dataPath)) return;
+        SimaiProcess.title = data.Name;
+        SimaiProcess.first = data.Offset;
+        selectedDifficulty = data.Diff;
+        SimaiProcess.levels[selectedDifficulty] = data.Level;
+        SimaiProcess.fumens[selectedDifficulty] = data.Text;
+
+        LevelSelector.SelectedIndex = selectedDifficulty;
+
+        //ReadSetting();
+        var setting = JsonConvert.DeserializeObject<MajSetting>(File.ReadAllText(localSettingPath));
+        SetBgmPosition(setting.lastEditTime);
+        Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+        Bass.BASS_ChannelSetAttribute(trackStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+        Bass.BASS_ChannelSetAttribute(allperfectStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+        Bass.BASS_ChannelSetAttribute(fanfareStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+        Bass.BASS_ChannelSetAttribute(clockStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+        Bass.BASS_ChannelSetAttribute(answerStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Answer_Level);
+        Bass.BASS_ChannelSetAttribute(judgeStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Judge_Level);
+        Bass.BASS_ChannelSetAttribute(judgeBreakStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Level);
+        Bass.BASS_ChannelSetAttribute(judgeBreakSlideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Slide_Level);
+        Bass.BASS_ChannelSetAttribute(slideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Slide_Level);
+        Bass.BASS_ChannelSetAttribute(breakSlideStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Slide_Level);
+        Bass.BASS_ChannelSetAttribute(breakStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Level);
+        Bass.BASS_ChannelSetAttribute(breakSlideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Slide_Level);
+        Bass.BASS_ChannelSetAttribute(judgeExStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Ex_Level);
+        Bass.BASS_ChannelSetAttribute(touchStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Touch_Level);
+        Bass.BASS_ChannelSetAttribute(hanabiStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
+        Bass.BASS_ChannelSetAttribute(holdRiserStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
+
+        SetRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
+        SeekTextFromTime();
+        SimaiProcess.Serialize(GetRawFumenText());
+        FumenContent.Focus();
+        DrawWave();
+
+        OffsetTextBox.Text = SimaiProcess.first.ToString();
+
+        Cover.Visibility = Visibility.Collapsed;
+        MenuEdit.IsEnabled = true;
+        VolumnSetting.IsEnabled = true;
+        MenuMuriCheck.IsEnabled = true;
+        Menu_ExportRender.IsEnabled = true;
+        SyntaxCheckButton.IsEnabled = true;
+        MaiMuriDX.IsEnabled = true;
+        AutoSaveManager.Of().SetAutoSaveEnable(false);
+        isSaved = true;
+        SyntaxCheck();
+
+        SetShareMode(true);
+    }
+
+    private void SetShareMode(bool state)
+    {
+        MapInfo.IsEnabled = !state;
+        LevelSelector.IsEnabled = !state;
+        LevelTextBox.IsEnabled = !state;
+        OffsetTextBox.IsEnabled = !state;
+        MapInfo.IsEnabled = !state;
+        if (state)
+        {
+            TheWindow.Title = GetWindowsTitleString(SimaiProcess.title! + " Share");
+        }
+        ShareMode = state;
     }
 
     internal async void SyntaxCheck()
@@ -392,18 +528,34 @@ public partial class MainWindow : Window
 
     private void SetSavedState(bool state)
     {
-        if (state)
+        if (ShareMode)
         {
-            isSaved = true;
-            LevelSelector.IsEnabled = true;
-            TheWindow.Title = GetWindowsTitleString(SimaiProcess.title!);
+            if (state)
+            {
+                isSaved = true;
+                TheWindow.Title = GetWindowsTitleString(SimaiProcess.title! + " Share");
+            }
+            else
+            {
+                isSaved = false;
+                TheWindow.Title = GetWindowsTitleString(GetLocalizedString("Unsaved") + SimaiProcess.title! + " Share");
+            }
         }
         else
         {
-            isSaved = false;
-            LevelSelector.IsEnabled = false;
-            TheWindow.Title = GetWindowsTitleString(GetLocalizedString("Unsaved") + SimaiProcess.title!);
-            AutoSaveManager.Of().SetFileChanged();
+            if (state)
+            {
+                isSaved = true;
+                LevelSelector.IsEnabled = true;
+                TheWindow.Title = GetWindowsTitleString(SimaiProcess.title!);
+            }
+            else
+            {
+                isSaved = false;
+                LevelSelector.IsEnabled = false;
+                TheWindow.Title = GetWindowsTitleString(GetLocalizedString("Unsaved") + SimaiProcess.title!);
+                AutoSaveManager.Of().SetFileChanged();
+            }
         }
     }
 
@@ -425,28 +577,41 @@ public partial class MainWindow : Window
         return true;
     }
 
-    private void SaveFumen(bool writeToDisk = false)
+    private void SaveFumen(bool writeToDisk)
     {
+        string _maidataDir = maidataDir;
+        if (ShareMode)
+        {
+            if (isHost) _maidataDir = originMaidataDir;
+            else 
+            {
+                _client.InvokeAsync(nameof(ChartHub.SaveFumen), false);
+                return;
+            }
+            _client.InvokeAsync(nameof(ChartHub.SaveFumen), true);
+        }
+
         if (selectedDifficulty == -1) return;
+        
         SimaiProcess.fumens[selectedDifficulty] = GetRawFumenText();
         SimaiProcess.first = float.Parse(OffsetTextBox.Text);
-        if (maidataDir == "")
+        if (_maidataDir == "")
         {
             var saveDialog = new SaveFileDialog
             {
                 Filter = "maidata.txt|maidata.txt",
                 OverwritePrompt = true
             };
-            if ((bool)saveDialog.ShowDialog()!) maidataDir = new FileInfo(saveDialog.FileName).DirectoryName!;
+            if ((bool)saveDialog.ShowDialog()!) _maidataDir = new FileInfo(saveDialog.FileName).DirectoryName!;
         }
 
         SyntaxCheck();
 
-        SimaiProcess.SaveData(maidataDir + "/maidata.bak.txt");
+        SimaiProcess.SaveData(_maidataDir + "/maidata.bak.txt");
         SaveSetting();
         if (writeToDisk)
         {
-            SimaiProcess.SaveData(maidataDir + "/maidata.txt");
+            SimaiProcess.SaveData(_maidataDir + "/maidata.txt");
             SetSavedState(true);
         }
     }
@@ -994,7 +1159,7 @@ public partial class MainWindow : Window
                 return;
 
         FumenContent.Focus();
-        SaveFumen();
+        SaveFumen(false);
         if (CheckAndStartView()) return;
         Op_Button.IsEnabled = false;
         isPlaying = true;
@@ -1574,6 +1739,155 @@ public partial class MainWindow : Window
     public void OpenFile(string path)
     {
         initFromFile(path);
+    }
+
+    private async Task ToggleChartShare()
+    {
+        if (ChartServer.App != null)
+        {
+            SaveFumen(true);
+            isHost = false;
+            await ChartServer.StopAsync();
+            await _client!.StopAsync();
+            _client = null;
+
+            TheWindow.Height -= 20;
+            Global_Grid.RowDefinitions[2].Height = new GridLength(0); //hide status bar
+            ShareStatus.DataContext = null;
+            Menu_ToggleChartShare.Header = GetLocalizedString("StartChartShare");
+
+            initFromFile(originMaidataDir);
+            
+            return;
+        }
+
+        var text = GetRawFumenText();
+        if (text == "")
+        {
+            MessageBox.Show(GetLocalizedString("ShareEmpty"), GetLocalizedString("Error"));
+            return;
+        }
+        isHost = true;
+        _shadowText = text;
+        var cds = new HubDataService(
+            SimaiProcess.title!,
+            selectedDifficulty,
+            SimaiProcess.levels[selectedDifficulty],
+            text,
+            SimaiProcess.first,
+            useOgg);
+        await ChartServer.StartAsync(cds, maidataDir);
+        await ConnectToChartServer("127.0.0.1", 8014);
+
+        TheWindow.Height += 20;
+        Global_Grid.RowDefinitions[2].Height = new GridLength(20); //show status bar
+        ShareStatus.Text = GetLocalizedString("ShareModeServer");
+        Menu_ToggleChartShare.Header = GetLocalizedString("StopChartShare");
+    }
+    private async Task ConnectToChartServer(string ip, int port)
+    {
+        if (_client != null)
+        {
+            await _client.StartAsync();
+            return;
+        }
+
+        string hubUrl = $"http://{ip}:{port}/chartHub";
+        string fileUrl = $"http://{ip}:{port}/chartFiles";
+
+        _client = new HubConnectionBuilder()
+            .WithUrl(hubUrl)
+            .WithAutomaticReconnect()
+#if DEBUG
+            .WithServerTimeout(TimeSpan.FromMinutes(30))
+            .WithKeepAliveInterval(TimeSpan.FromMinutes(1))
+#endif
+            .Build();
+
+
+        // A. 收到初始化数据 (文本、音频)
+        _client.On<GuestInitDto>(nameof(IEditorClient.OnJoined), (data) =>
+        {
+            Dispatcher.Invoke(async () =>
+            {
+                await initFromShare(fileUrl, data);
+            });
+        });
+
+        // B. 有新人加入了
+        _client.On<ClientConnectDto>(nameof(IEditorClient.OnGuestJoined), async (guest) =>
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+
+            });
+        });
+
+        //C: 收到远程用户的编辑操作
+        _client.On<StateChangeDto>(nameof(IEditorClient.OnMovingOrTyping), async (change) =>
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                _isRemoteUpdate = true; //防止死循环
+
+                string currentUiText = GetRawFumenText();
+                var patches = _dmp.patch_fromText(change.PatchText);
+                var result = _dmp.patch_apply(patches, currentUiText);
+                string newText = (string)result[0];
+
+                // 保存光标位置
+                var caretIndex = FumenContent.CaretPosition;
+
+                FumenContent.Document.Blocks.Clear();
+                var lines = newText.Split('\n');
+                foreach (var line in lines)
+                {
+                    var paragraph = new Paragraph();
+                    paragraph.Inlines.Add(line);
+                    FumenContent.Document.Blocks.Add(paragraph);
+                }
+                _shadowText = newText;
+
+                // 恢复光标
+                FumenContent.CaretPosition = caretIndex;
+
+                _isRemoteUpdate = false;
+            });
+        });
+
+        _client.On<string>(nameof(IEditorClient.OnSaveFumen), async (text) =>
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (text == "") SetSavedState(true);
+                else SaveFumen(true);
+            });
+        });
+
+        await _client.StartAsync();
+        if (_client.State == HubConnectionState.Connected)
+            await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto() { 
+                UserName = Environment.MachineName,
+                isHost = isHost
+            });
+    }
+
+
+    private async Task SyncChartServer()
+    {
+        if (_isRemoteUpdate || !ShareMode) return;
+        if (_client!.State != HubConnectionState.Connected) return;
+
+        string currentUiText = GetRawFumenText();
+
+        var diffs = _dmp.diff_main(_shadowText, currentUiText);
+        if (diffs.Count == 0) return;
+        var patches = _dmp.patch_make(_shadowText, diffs);
+        var patchText = _dmp.patch_toText(patches);
+
+        _shadowText = currentUiText;
+
+        await _client.InvokeAsync(nameof(ChartHub.MovingOrTyping), new StateChangeDto { PatchText = patchText });
     }
 
 
