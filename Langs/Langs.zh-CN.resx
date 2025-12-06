@@ -132,6 +132,87 @@
   <data name="Message" xml:space="preserve">
     <value>信息</value>
   </data>
+  <data name="MuriDXSErrorOverlap" xml:space="preserve">
+    <value>[叠键无理] “{0}” 与 “{1}” 重叠</value>
+  </data>
+  <data name="MuriDXSErrorOverlapDetail" xml:space="preserve">
+    <value>[叠键无理] {0}cb处\"{1}\"(L{2},C{3}) 与 {4}cb处\"{5}\"(L{6},C{7}) 重叠</value>
+  </data>
+  <data name="MuriDXSErrorSlideHeadTap" xml:space="preserve">
+    <value>[外键无理] “{0}” 可能被 “{1}” 蹭到</value>
+  </data>
+  <data name="MuriDXSErrorSlideHeadTapDetail" xml:space="preserve">
+    <value>[外键无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 {4}cb处\"{5}\"(L{6},C{7}) 蹭到\n({8:+0;-0} ms)</value>
+  </data>
+  <data name="MuriDXSErrorTapOnSlide" xml:space="preserve">
+    <value>[撞尾无理] “{0}” 可能被 “{1}” 蹭到</value>
+  </data>
+  <data name="MuriDXSErrorTapOnSlideDetail" xml:space="preserve">
+    <value>[撞尾无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 {4}cb处\"{5}\"(L{6},C{7}) 蹭到\n({8:+0;-0} ms)</value>
+  </data>
+  <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
+    <value>[多押无理] 可能形成{0}押</value>
+  </data>
+  <data name="MuriDXDErrorMultiTouchDetail" xml:space="preserve">
+    <value>{0}[多押无理] 下列note可能形成{1}押\n    {2}</value>
+  </data>
+  <data name="MuriDXDErrorSlideTooFast" xml:space="preserve">
+    <value>[内屏无理] “{0}” 被提前蹭掉</value>
+  </data>
+  <data name="MuriDXDErrorSlideTooFastDetail" xml:space="preserve">
+    <value>{0}[内屏无理] {1}cb处\"{2}\"(L{3},C{4}) 被提前蹭掉\nCP区间±{5:0.0} ms，相关判定区如下:\n{6}</value>
+  </data>
+  <data name="MuriDXDErrorOverlap" xml:space="preserve">
+    <value>[叠键无理] “{0}” 似乎与另一个note重叠</value>
+  </data>
+  <data name="MuriDXDErrorOverlapDetail" xml:space="preserve">
+    <value>{0}[叠键无理] {1}cb处\"{2}\"(L{3},C{4}) 似乎与另一个note重叠\n({5:+0;-0} ms)</value>
+  </data>
+  <data name="MuriDXDErrorSlideHeadTap" xml:space="preserve">
+    <value>[外键无理] “{0}” 被 “{1}” 蹭到</value>
+  </data>
+  <data name="MuriDXDErrorSlideHeadTapDetail" xml:space="preserve">
+    <value>{0}[外键无理] {1}cb处\"{2}\"(L{3},C{4}) 被 {5}cb处\"{6}\"(L{7},C{8}) 蹭到\n({9:+0;-0} ms)</value>
+  </data>
+  <data name="MuriDXDErrorTapOnSlide" xml:space="preserve">
+    <value>[撞尾无理] “{0}” 被 “{1}” 蹭到</value>
+  </data>
+  <data name="MuriDXDErrorTapOnSlideDetail" xml:space="preserve">
+    <value>{0}[撞尾无理] {1}cb处\"{2}\"(L{3},C{4}) 可能被 {5}cb处\"{6}\"(L{7},C{8}) 蹭到\n({9:+0;-0} ms)</value>
+  </data>
+  <data name="ShareEmpty" xml:space="preserve">
+    <value>要分享的谱面为空！请先打开一张谱面</value>
+  </data>
+  <data name="StartChartShare" xml:space="preserve">
+    <value>开启谱面共享</value>
+  </data>
+  <data name="StopChartShare" xml:space="preserve">
+    <value>停止谱面共享</value>
+  </data>
+  <data name="DisconnectChartShare" xml:space="preserve">
+    <value>停止连接到谱面共享</value>
+  </data>
+  <data name="ConnectChartShare" xml:space="preserve">
+    <value>连接到谱面共享</value>
+  </data>
+  <data name="CloseChart" xml:space="preserve">
+    <value>关闭谱面</value>
+  </data>
+  <data name="ShareModeServer" xml:space="preserve">
+    <value>谱面共享 - 已启动于{0}:8014</value>
+  </data>
+  <data name="ViewSetting" xml:space="preserve">
+    <value>View设置</value>
+  </data>
+  <data name="ShareSetting" xml:space="preserve">
+    <value>谱面共享设置</value>
+  </data>
+  <data name="ShareUserName" xml:space="preserve">
+    <value>用户名</value>
+  </data>
+  <data name="ShareColorHex" xml:space="preserve">
+    <value>光标颜色</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -497,52 +578,16 @@
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[语法警告] 谱面应当以"E"结尾："{0}"</value>
   </data>
-  <data name="MuriDXSErrorOverlap" xml:space="preserve">
-    <value>[叠键无理] “{0}” 与 “{1}” 重叠</value>
+  <data name="ConnectIP" xml:space="preserve">
+    <value>主机IP</value>
   </data>
-  <data name="MuriDXSErrorOverlapDetail" xml:space="preserve">
-    <value>[叠键无理] {0}cb处\"{1}\"(L{2},C{3}) 与 {4}cb处\"{5}\"(L{6},C{7}) 重叠</value>
+  <data name="ConnectPort" xml:space="preserve">
+    <value>主机端口</value>
   </data>
-  <data name="MuriDXSErrorSlideHeadTap" xml:space="preserve">
-    <value>[外键无理] “{0}” 可能被 “{1}” 蹭到</value>
+  <data name="ConnectToView" xml:space="preserve">
+    <value>连接到View</value>
   </data>
-  <data name="MuriDXSErrorSlideHeadTapDetail" xml:space="preserve">
-    <value>[外键无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 {4}cb处\"{5}\"(L{6},C{7}) 蹭到\n({8:+0;-0} ms)</value>
-  </data>
-  <data name="MuriDXSErrorTapOnSlide" xml:space="preserve">
-    <value>[撞尾无理] “{0}” 可能被 “{1}” 蹭到</value>
-  </data>
-  <data name="MuriDXSErrorTapOnSlideDetail" xml:space="preserve">
-    <value>[撞尾无理] {0}cb处\"{1}\"(L{2},C{3}) 可能被 {4}cb处\"{5}\"(L{6},C{7}) 蹭到\n({8:+0;-0} ms)</value>
-  </data>
-  <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
-    <value>[多押无理] 可能形成{0}押</value>
-  </data>
-  <data name="MuriDXDErrorMultiTouchDetail" xml:space="preserve">
-    <value>{0}[多押无理] 下列note可能形成{1}押\n    {2}</value>
-  </data>
-  <data name="MuriDXDErrorSlideTooFast" xml:space="preserve">
-    <value>[内屏无理] “{0}” 被提前蹭掉</value>
-  </data>
-  <data name="MuriDXDErrorSlideTooFastDetail" xml:space="preserve">
-    <value>{0}[内屏无理] {1}cb处\"{2}\"(L{3},C{4}) 被提前蹭掉\nCP区间±{5:0.0} ms，相关判定区如下:\n{6}</value>
-  </data>
-  <data name="MuriDXDErrorOverlap" xml:space="preserve">
-    <value>[叠键无理] “{0}” 似乎与另一个note重叠</value>
-  </data>
-  <data name="MuriDXDErrorOverlapDetail" xml:space="preserve">
-    <value>{0}[叠键无理] {1}cb处\"{2}\"(L{3},C{4}) 似乎与另一个note重叠\n({5:+0;-0} ms)</value>
-  </data>
-  <data name="MuriDXDErrorSlideHeadTap" xml:space="preserve">
-    <value>[外键无理] “{0}” 被 “{1}” 蹭到</value>
-  </data>
-  <data name="MuriDXDErrorSlideHeadTapDetail" xml:space="preserve">
-    <value>{0}[外键无理] {1}cb处\"{2}\"(L{3},C{4}) 被 {5}cb处\"{6}\"(L{7},C{8}) 蹭到\n({9:+0;-0} ms)</value>
-  </data>
-  <data name="MuriDXDErrorTapOnSlide" xml:space="preserve">
-    <value>[撞尾无理] “{0}” 被 “{1}” 蹭到</value>
-  </data>
-  <data name="MuriDXDErrorTapOnSlideDetail" xml:space="preserve">
-    <value>{0}[撞尾无理] {1}cb处\"{2}\"(L{3},C{4}) 可能被 {5}cb处\"{6}\"(L{7},C{8}) 蹭到\n({9:+0;-0} ms)</value>
+  <data name="Connect" xml:space="preserve">
+    <value>连接</value>
   </data>
 </root>

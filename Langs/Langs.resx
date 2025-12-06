@@ -180,4 +180,49 @@
   <data name="MuriDXDErrorTapOnSlideDetail" xml:space="preserve">
     <value />
   </data>
+  <data name="ShareEmpty" xml:space="preserve">
+    <value />
+  </data>
+  <data name="StartChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="StopChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="DisconnectChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="CloseChart" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareModeServer" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ViewSetting" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareSetting" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareUserName" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareColorHex" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectIP" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectPort" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectToView" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value />
+  </data>
 </root>

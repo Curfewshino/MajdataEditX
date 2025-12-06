@@ -15,7 +15,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Timers;
@@ -32,7 +34,6 @@ using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WPFLocalizeExtension.Engine;
 using WPFLocalizeExtension.Extensions;
-using static System.Net.Mime.MediaTypeNames;
 using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
 using DashStyle = System.Drawing.Drawing2D.DashStyle;
@@ -266,6 +267,56 @@ public partial class MainWindow : Window
     }
 
     //*FILE CONTROL
+
+    private async void ClearWindow()
+    {
+        if (!isSaved)
+            if (!AskSave())
+            {
+                return;
+            }
+
+        if (ChartServer.App != null) await ToggleChartShare();
+
+        currentTimeRefreshTimer.Stop();
+        visualEffectRefreshTimer.Stop();
+
+        soundSetting.Close();
+        SaveSetting();
+
+        Bass.BASS_ChannelStop(bgmStream);
+        Bass.BASS_StreamFree(bgmStream);
+        Bass.BASS_ChannelStop(answerStream);
+        Bass.BASS_StreamFree(answerStream);
+        Bass.BASS_ChannelStop(breakStream);
+        Bass.BASS_StreamFree(breakStream);
+        Bass.BASS_ChannelStop(judgeExStream);
+        Bass.BASS_StreamFree(judgeExStream);
+        Bass.BASS_ChannelStop(hanabiStream);
+        Bass.BASS_StreamFree(hanabiStream);
+        Bass.BASS_Stop();
+        Bass.BASS_Free();
+
+        if (soundSetting != null) soundSetting.Close();
+        audioDir = "";
+        maidataDir = "";
+        //SetRawFumenText("");
+        FumenContent.Document.Blocks.Clear();
+        SimaiProcess.ClearData();
+        LevelSelector.SelectedItem = "";
+        OffsetTextBox.Text = "";
+
+        Cover.Visibility = Visibility.Visible;
+        MenuEdit.IsEnabled = false;
+        VolumnSetting.IsEnabled = false;
+        MenuMuriCheck.IsEnabled = false;
+        Menu_ExportRender.IsEnabled = false;
+        SyntaxCheckButton.IsEnabled = false;
+        MaiMuriDX.IsEnabled = false;
+        AutoSaveManager.Of().SetAutoSaveEnable(false);
+        SetSavedState(true);
+        TheWindow.Title = GetWindowsTitleString();
+    }
     private async void initFromFile(string path) //file name should not be included in path
     {
         if (ChartServer.App != null) await ToggleChartShare();
@@ -1755,6 +1806,8 @@ public partial class MainWindow : Window
             Global_Grid.RowDefinitions[2].Height = new GridLength(0); //hide status bar
             ShareStatus.DataContext = null;
             Menu_ToggleChartShare.Header = GetLocalizedString("StartChartShare");
+            Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
+            Menu_ConnectChartShare.IsEnabled = true;
 
             initFromFile(originMaidataDir);
             
@@ -1781,8 +1834,10 @@ public partial class MainWindow : Window
 
         TheWindow.Height += 20;
         Global_Grid.RowDefinitions[2].Height = new GridLength(20); //show status bar
-        ShareStatus.Text = GetLocalizedString("ShareModeServer");
+        ShareStatus.Text = string.Format(GetLocalizedString("ShareModeServer"), GetLocalIPAddress());
         Menu_ToggleChartShare.Header = GetLocalizedString("StopChartShare");
+        Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare");
+        Menu_ConnectChartShare.IsEnabled = false; //房主不能自己断掉与自己的连接
     }
     private async Task ConnectToChartServer(string ip, int port)
     {
@@ -1867,11 +1922,26 @@ public partial class MainWindow : Window
         await _client.StartAsync();
         if (_client.State == HubConnectionState.Connected)
             await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto() { 
-                UserName = Environment.MachineName,
+                UserName = editorSetting!.ShareUserName,
+                ColorHex = editorSetting!.ShareColorHex,
                 isHost = isHost
             });
     }
 
+    private async Task DisconnectToChartServer()
+    {
+        if (_client != null)
+        {
+            if (_client.State == HubConnectionState.Connected)
+            {
+                SaveFumen(true);
+                await _client.StopAsync();
+            }
+            _client = null;
+        }
+        SetShareMode(false);
+        ClearWindow();
+    }
 
     private async Task SyncChartServer()
     {
@@ -1890,6 +1960,19 @@ public partial class MainWindow : Window
         await _client.InvokeAsync(nameof(ChartHub.MovingOrTyping), new StateChangeDto { PatchText = patchText });
     }
 
+    // 获取本机局域网IP
+    public static string GetLocalIPAddress()
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                return ip.ToString();
+            }
+        }
+        return "127.0.0.1";
+    }
 
     //*PLAY CONTROL
 

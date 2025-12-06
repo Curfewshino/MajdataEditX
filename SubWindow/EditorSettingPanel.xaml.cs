@@ -125,6 +125,8 @@ public partial class EditorSettingPanel : Window
         window.ViewerTouchSpeed.Content = window.editorSetting.touchSpeed.ToString("F1");
         window.chartChangeTimer.Interval = window.editorSetting.ChartRefreshDelay;
 
+        window.editorSetting.ShareUserName = ShareUserName.Text;
+        window.editorSetting.ShareColorHex = ShareColorHex.Text;
 
         saveFlag = true;
         window.SyntaxCheck();

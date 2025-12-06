@@ -237,7 +237,25 @@ public partial class MainWindow : Window
     }
     private async void Menu_ConnectChartShare_Click(object sender, RoutedEventArgs e)
     {
-        await ConnectToChartServer("127.0.0.1", 8014);
+        if (ShareMode)
+        {
+            await DisconnectToChartServer();
+            Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
+        }
+        else
+        {
+            new ConnectShare(async (ip, port) =>
+            {
+                await ConnectToChartServer(ip, port);
+                await Dispatcher.InvokeAsync(() =>
+                    Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare"));
+            }).ShowDialog();
+        }
+    }
+
+    private void Menu_CloseChart_Click(object sender, RoutedEventArgs e)
+    {
+        ClearWindow();
     }
 
     private void MirrorLeftRight_MenuItem_Click(object? sender, RoutedEventArgs e)
