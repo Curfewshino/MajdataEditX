@@ -1,16 +1,17 @@
-﻿using System;
+﻿using DiffMatchPatch; // 引入命名空间
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using DiffMatchPatch; // 引入命名空间
-
 namespace MajdataEdit.ChartShare;
 
 public class HubDataService
 {
+    public List<ClientConnectDto> ConnectedUsers { get; set; } = new List<ClientConnectDto>();
     public string HostId { get; set; }
     public string Name { get; init; }
     public string Level { get; init; }
@@ -18,6 +19,7 @@ public class HubDataService
     public string CurrentText { get; set; } = "";
     public float Offset { get; init; }
     public bool UseOgg { get; init; }
+    public ConcurrentDictionary<string, RemoteCursor> UserCursors { get; } = new();
 
     private readonly object _lock = new object();
     private readonly diff_match_patch _dmp;

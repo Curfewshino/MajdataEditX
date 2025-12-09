@@ -126,6 +126,7 @@
                   Click="FollowPlayCheck_Click" Background="{DynamicResource ButtonsBackground}"
                   Template="{DynamicResource DarkCheck}" Grid.Row="1" Grid.Column="1" />
         <RichTextBox x:Name="FumenContent"
+                     ScrollViewer.ScrollChanged = "FumenContent_ScrollChanged"
                      Padding="0,5" FontFamily="Consolas"
                      Foreground="#FFE8E8E8" TextChanged="FumenContent_TextChanged"
                      Margin="102,29,10,90" HorizontalScrollBarVisibility="Auto"
@@ -171,6 +172,11 @@
             </RichTextBox.CommandBindings>
             <FlowDocument />
         </RichTextBox>
+        <Canvas x:Name="CursorOverlay" 
+                IsHitTestVisible="False" 
+                ClipToBounds="True" 
+                Margin="102,29,10,90" 
+                Grid.ColumnSpan="2" Grid.Row="1" Grid.Column="1"/>
         <Label x:Name="TimeLabel" Content="0:00" HorizontalAlignment="Left" Height="64" Margin="0,16,0,0"
                VerticalAlignment="Top" Width="105" Foreground="{DynamicResource ButtonForeground}" FontFamily="Bahnschrift Light" FontSize="50"
                VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2" />

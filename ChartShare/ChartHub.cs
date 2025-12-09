@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using DiscordRPC;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Windows.Markup;
 
 namespace MajdataEdit.ChartShare;
 
@@ -19,20 +24,29 @@ public class ChartHub : Hub<IEditorClient>
         this.dataService = dataService;
     }
 
-    public async Task MovingOrTyping(StateChangeDto data)
+    public async Task Typing(string patchText)
     {
-        dataService.ApplyPatch(data.PatchText);
-        await Clients.Others.OnMovingOrTyping(data);
+        dataService.ApplyPatch(patchText);
+        await Clients.Others.OnTyping(patchText);
+    }
+
+    public async Task Moving(int index)
+    {
+        dataService.UserCursors[Context.ConnectionId].Index = index;
+
+        await Clients.Others.OnSyncCursors(new Dictionary<string, RemoteCursor>(dataService.UserCursors));
     }
 
     public async Task GuestInit(ClientConnectDto data)
     {
         data.UserId = Context.ConnectionId;
 
+        dataService.ConnectedUsers.Add(data);
         if (data.isHost)
         {
             dataService.HostId = data.UserId;
         }
+
         await Clients.Caller.OnJoined(new GuestInitDto()
         {
             UserId = data.UserId,
@@ -43,8 +57,27 @@ public class ChartHub : Hub<IEditorClient>
             Offset = dataService.Offset,
             UseOgg = dataService.UseOgg
         });
-        
-        await Clients.Others.OnGuestJoined(data);
+
+        dataService.UserCursors.AddOrUpdate(Context.ConnectionId, new RemoteCursor()
+        {
+            UserName = data.UserName,
+            ColorHex = data.ColorHex,
+            Index = 0
+        }, (key, oldValue) => oldValue);
+
+        await Clients.Others.OnUserJoined(data);
+    }
+
+    public override async Task<Task> OnDisconnectedAsync(Exception? exception)
+    {
+        var user = dataService.ConnectedUsers.FirstOrDefault(u => u.UserId == Context.ConnectionId);
+        await Clients.Others.OnUserLeft(user!, exception == null ? "" : exception.Message);
+        dataService.ConnectedUsers.Remove(user!);
+        dataService.UserCursors.TryRemove(Context.ConnectionId, out _);
+
+        await Clients.Caller.OnSyncCursors(new Dictionary<string, RemoteCursor>(dataService.UserCursors));
+
+        return base.OnDisconnectedAsync(exception);
     }
 
     public async Task SaveFumen(bool isStateChangeOnly)

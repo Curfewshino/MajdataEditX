@@ -10,8 +10,10 @@ namespace MajdataEdit.ChartShare
     public interface IEditorClient
     {
         Task OnJoined(GuestInitDto data);
-        Task OnMovingOrTyping(StateChangeDto data);
-        Task OnGuestJoined(ClientConnectDto data);
+        Task OnTyping(string patchText);
+        Task OnSyncCursors(Dictionary<string, RemoteCursor> cursors);
+        Task OnUserJoined(ClientConnectDto data);
+        Task OnUserLeft(ClientConnectDto data, string message);
         Task OnSaveFumen(string text);
     }
 
@@ -37,11 +39,10 @@ namespace MajdataEdit.ChartShare
         public bool UseOgg { get; set; }
     }
 
-    // 文本变更包
-    public class StateChangeDto
+    public class RemoteCursor
     {
-        public string UserId { get; set; }
+        public string UserName { get; set; }
+        public string ColorHex { get; set; }
         public int Index { get; set; }
-        public string PatchText { get; set; }
     }
 }

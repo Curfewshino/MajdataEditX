@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Semver;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -30,6 +31,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WPFLocalizeExtension.Engine;
@@ -101,6 +103,8 @@ public partial class MainWindow : Window
     private string _shadowText = ""; // 谱面文本同步缓冲
     private diff_match_patch _dmp = new diff_match_patch();
 
+    private Dictionary<string, RemoteCursor> _cursors = new();
+
     //*TEXTBOX CONTROL
     private string GetRawFumenText()
     {
@@ -136,9 +140,118 @@ public partial class MainWindow : Window
 
     private long GetRawFumenPosition()
     {
-        long pos = new TextRange(FumenContent.Document.ContentStart, FumenContent.CaretPosition).Text.Replace("\r", "")
-            .Length;
-        return pos;
+        TextPointer caret = FumenContent.CaretPosition;
+        TextPointer start = FumenContent.Document.ContentStart;
+
+        // 如果光标在开头，直接返回0
+        if (caret.CompareTo(start) <= 0) return 0;
+
+        long count = 0;
+
+        // 遍历所有 Block
+        foreach (Block block in FumenContent.Document.Blocks)
+        {
+            if (block is Paragraph para)
+            {
+                // 如果光标在这个段落之前（说明光标还没到这个段落），那肯定不用继续算后面了
+                // 但因为 Block 是顺序的，我们主要判断光标是否在段落“内部”或“之后”
+
+                // 快速判断：光标是否在这个段落之后？
+                // ContentEnd 包含段落结尾标记，CompareTo < 0 说明光标在该段落内部或之前
+                if (caret.CompareTo(para.ContentEnd) < 0)
+                {
+                    // 光标就在这个段落里！
+                    foreach (Inline inline in para.Inlines)
+                    {
+                        if (inline is Run run)
+                        {
+                            // 判断光标是否在这个 Run 之后
+                            if (caret.CompareTo(run.ContentEnd) <= 0)
+                            {
+                                // 光标在这个 Run 内部
+                                // 计算 Run 起点到光标的距离
+                                // GetOffsetToPosition 返回符号距离，在 Run 内部等于字符距离
+                                int offset = run.ContentStart.GetOffsetToPosition(caret);
+                                return count + offset;
+                            }
+
+                            // 光标在这个 Run 之后，加上整个 Run 的长度
+                            count += run.Text.Length;
+                        }
+                    }
+                    // 如果到了这里，说明光标在段落末尾（换行符前）
+                    return count;
+                }
+
+                // 光标在这个段落之后，累加该段落所有文本长度
+                foreach (Inline inline in para.Inlines)
+                {
+                    if (inline is Run r) count += r.Text.Length;
+                }
+
+                // 加上换行符长度
+                count += 1;
+            }
+        }
+
+        return count;
+    }
+
+    // 文档结构是由 Split('\n') 生成的简单段落列表
+    public void SetRawFumenPosition(long targetIndex)
+    {
+        if (targetIndex < 0) targetIndex = 0;
+
+        long currentCount = 0;
+        TextPointer? targetPointer = null;
+
+        foreach (Block block in FumenContent.Document.Blocks)
+        {
+            if (block is Paragraph para)
+            {
+                // 优化点：直接遍历 Inlines，通常每行只有一个 Run
+                foreach (Inline inline in para.Inlines)
+                {
+                    if (inline is Run run)
+                    {
+                        int runLen = run.Text.Length;
+
+                        // 目标是否在这个 Run
+                        if (currentCount + runLen >= targetIndex)
+                        {
+                            int offsetInRun = (int)(targetIndex - currentCount);
+
+                            // 这里的 GetPositionAtOffset 是安全的，因为 Run 内部 1char = 1offset
+                            targetPointer = run.ContentStart.GetPositionAtOffset(offsetInRun, LogicalDirection.Forward);
+                            goto Found;
+                        }
+
+                        currentCount += runLen;
+                    }
+                }
+
+                // 处理完一行后，加上换行符的长度
+                currentCount += 1;
+
+                // 如果目标正好是换行符的位置，光标应该定位在该段落末尾
+                if (currentCount > targetIndex)
+                {
+                    targetPointer = para.ContentEnd;
+                    goto Found;
+                }
+            }
+        }
+
+    Found:
+        if (targetPointer != null)
+        {
+            FumenContent.CaretPosition = targetPointer;
+            FumenContent.Focus();
+        }
+        else
+        {
+            FumenContent.CaretPosition = FumenContent.Document.ContentEnd;
+        }
     }
 
     private void SeekTextFromTime()
@@ -284,19 +397,6 @@ public partial class MainWindow : Window
         soundSetting.Close();
         SaveSetting();
 
-        Bass.BASS_ChannelStop(bgmStream);
-        Bass.BASS_StreamFree(bgmStream);
-        Bass.BASS_ChannelStop(answerStream);
-        Bass.BASS_StreamFree(answerStream);
-        Bass.BASS_ChannelStop(breakStream);
-        Bass.BASS_StreamFree(breakStream);
-        Bass.BASS_ChannelStop(judgeExStream);
-        Bass.BASS_StreamFree(judgeExStream);
-        Bass.BASS_ChannelStop(hanabiStream);
-        Bass.BASS_StreamFree(hanabiStream);
-        Bass.BASS_Stop();
-        Bass.BASS_Free();
-
         if (soundSetting != null) soundSetting.Close();
         audioDir = "";
         maidataDir = "";
@@ -419,7 +519,7 @@ public partial class MainWindow : Window
 
         useOgg = data.UseOgg;
 
-        HttpClient httpClient = new HttpClient();
+        HttpClient httpClient = new();
 
         // 下载音频
         var trackName = "track" + (useOgg ? ".ogg" : ".mp3");
@@ -1860,7 +1960,7 @@ public partial class MainWindow : Window
             .Build();
 
 
-        // A. 收到初始化数据 (文本、音频)
+        // 收到初始化数据 (文本、音频)
         _client.On<GuestInitDto>(nameof(IEditorClient.OnJoined), (data) =>
         {
             Dispatcher.Invoke(async () =>
@@ -1869,8 +1969,8 @@ public partial class MainWindow : Window
             });
         });
 
-        // B. 有新人加入了
-        _client.On<ClientConnectDto>(nameof(IEditorClient.OnGuestJoined), async (guest) =>
+        // 有人加入了
+        _client.On<ClientConnectDto>(nameof(IEditorClient.OnUserJoined), async (user) =>
         {
             await Dispatcher.InvokeAsync(() =>
             {
@@ -1878,20 +1978,37 @@ public partial class MainWindow : Window
             });
         });
 
-        //C: 收到远程用户的编辑操作
-        _client.On<StateChangeDto>(nameof(IEditorClient.OnMovingOrTyping), async (change) =>
+        // 有人离开了
+        _client.On<ClientConnectDto, string>(nameof(IEditorClient.OnUserLeft), async (user, message) =>
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+
+            });
+        });
+
+        // 收到远程用户的编辑操作
+        _client.On<string>(nameof(IEditorClient.OnTyping), async (patchText) =>
         {
             await Dispatcher.InvokeAsync(() =>
             {
                 _isRemoteUpdate = true; //防止死循环
 
                 string currentUiText = GetRawFumenText();
-                var patches = _dmp.patch_fromText(change.PatchText);
+                var patches = _dmp.patch_fromText(patchText);
                 var result = _dmp.patch_apply(patches, currentUiText);
                 string newText = (string)result[0];
 
                 // 保存光标位置
-                var caretIndex = FumenContent.CaretPosition;
+                long savedIndex = GetRawFumenPosition();
+                // 简单的 Diff 修正
+                foreach (var patch in patches)
+                {
+                    if (patch.start1 <= savedIndex)
+                    {
+                        savedIndex += (patch.length2 - patch.length1);
+                    }
+                }
 
                 FumenContent.Document.Blocks.Clear();
                 var lines = newText.Split('\n');
@@ -1903,29 +2020,41 @@ public partial class MainWindow : Window
                 }
                 _shadowText = newText;
 
-                // 恢复光标
-                FumenContent.CaretPosition = caretIndex;
+                SetRawFumenPosition(savedIndex);
+
+                FumenContent.Focus();
 
                 _isRemoteUpdate = false;
             });
         });
+        
+        //光标移动信息
+        _client.On<Dictionary<string, RemoteCursor>>(nameof(IEditorClient.OnSyncCursors), async (cursors) =>
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                _cursors = cursors.Where(c => c.Key != _client.ConnectionId).ToDictionary(kv => kv.Key, kv => kv.Value);
+                RenderAllCursors();
+            });
+        });
 
+        //接收到保存信息
         _client.On<string>(nameof(IEditorClient.OnSaveFumen), async (text) =>
         {
             await Dispatcher.InvokeAsync(() =>
             {
-                if (text == "") SetSavedState(true);
+                if (text == "") SetSavedState(true); //为空表示只是状态更新
                 else SaveFumen(true);
             });
         });
 
         await _client.StartAsync();
-        if (_client.State == HubConnectionState.Connected)
-            await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto() { 
-                UserName = editorSetting!.ShareUserName,
-                ColorHex = editorSetting!.ShareColorHex,
-                isHost = isHost
-            });
+        await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto() { 
+            UserName = editorSetting!.ShareUserName,
+            ColorHex = editorSetting!.ShareColorHex,
+            isHost = isHost
+        });
+        if (!isHost) Menu_ToggleChartShare.IsEnabled = false; //非房主不能套娃开房
     }
 
     private async Task DisconnectToChartServer()
@@ -1940,6 +2069,8 @@ public partial class MainWindow : Window
             _client = null;
         }
         SetShareMode(false);
+        //if (!isHost)
+        Menu_ToggleChartShare.IsEnabled = true; //非房主不能套娃开房-恢复
         ClearWindow();
     }
 
@@ -1957,7 +2088,59 @@ public partial class MainWindow : Window
 
         _shadowText = currentUiText;
 
-        await _client.InvokeAsync(nameof(ChartHub.MovingOrTyping), new StateChangeDto { PatchText = patchText });
+        await _client.InvokeAsync(nameof(ChartHub.Typing), patchText);
+    }
+
+    private void RenderAllCursors()
+    {
+        CursorOverlay.Children.Clear(); // 清空重画
+
+        foreach (var kvp in _cursors)
+        {
+            var cursor = kvp.Value;
+
+            // 把纯文本索引转为 TextPointer
+            TextPointer ptr = GetPointerFromRawFumenIndex(cursor.Index);
+
+            if (ptr == null) continue;
+
+            // 获取屏幕坐标
+            Rect rect = ptr.GetCharacterRect(LogicalDirection.Forward);
+
+            // 越界检查
+            if (rect.Bottom < 0 || rect.Top > FumenContent.ViewportHeight) continue;
+
+            var brush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(cursor.ColorHex));
+            Border cursorLine = new Border
+            {
+                Width = 2,
+                Height = rect.Height > 0 ? rect.Height : 20,
+                Background = brush
+            };
+
+            // 名字标签
+            var nameTag = new TextBlock
+            {
+                Text = cursor.UserName,
+                FontSize = 10,
+                Foreground = System.Windows.Media.Brushes.White,
+                Padding = new Thickness(2, 0, 2, 0)
+            };
+
+            // --- F. 定位并添加到画布 ---
+            // 加上 RTB 的 Padding 修正 (通常 RTB 左边有 5px 左右的 Padding)
+            double left = rect.X + FumenContent.Padding.Left;
+            double top = rect.Y + FumenContent.Padding.Top;
+
+            Canvas.SetLeft(cursorLine, left);
+            Canvas.SetTop(cursorLine, top);
+
+            Canvas.SetLeft(nameTag, left);
+            Canvas.SetTop(nameTag, top - 15); // 名字顶在头上
+
+            CursorOverlay.Children.Add(cursorLine);
+            CursorOverlay.Children.Add(nameTag);
+        }
     }
 
     // 获取本机局域网IP
@@ -1972,6 +2155,33 @@ public partial class MainWindow : Window
             }
         }
         return "127.0.0.1";
+    }
+
+    private TextPointer GetPointerFromRawFumenIndex(long targetIndex)
+    {
+        long count = 0;
+        foreach (Block block in FumenContent.Document.Blocks)
+        {
+            if (block is Paragraph para)
+            {
+                // 每行只有一个 Run
+                if (para.Inlines.FirstInline is Run run)
+                {
+                    int len = run.Text.Length;
+                    if (count + len >= targetIndex)
+                    {
+                        // 目标在这一行中间
+                        return run.ContentStart.GetPositionAtOffset((int)(targetIndex - count));
+                    }
+                    count += len;
+                }
+                // 加上换行符
+                count += 1;
+                // 如果目标正好是换行符的位置
+                if (count > targetIndex) return para.ContentEnd;
+            }
+        }
+        return null;
     }
 
     //*PLAY CONTROL

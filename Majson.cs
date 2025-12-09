@@ -113,6 +113,6 @@ public class EditorSetting
     public string SendViewerKey = "Ctrl+Shift+z";
     public float touchSpeed = 7.5f;
     public bool SmoothSlideAnime = false;
-    public string ShareUserName = "";
-    public string ShareColorHex = "#FF0000";
+    public string ShareUserName = "Guest";
+    public string ShareColorHex = "#FFFFFF";
 }

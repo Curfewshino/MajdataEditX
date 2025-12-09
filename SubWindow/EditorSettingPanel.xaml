@@ -96,13 +96,13 @@
                Content="{lex:Loc Key=ShareUserName}" />
         <TextBox x:Name="ShareUserName"
                  Grid.Row="6" Grid.Column="1"
-                 Text="" />
+                 Text="Guest" />
 
         <Label Grid.Row="7" Grid.Column="0"
                Content="{lex:Loc Key=ShareColorHex}" />
         <TextBox x:Name="ShareColorHex"
                  Grid.Row="7" Grid.Column="1"
-                 Text="" />
+                 Text="#FFFFFF" />
 
         <Label Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Center"
                Content="{lex:Loc Key=ViewSetting}" FontWeight="DemiBold" />

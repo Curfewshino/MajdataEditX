@@ -1,7 +1,9 @@
 ﻿using DiscordRPC.Logging;
 using MajdataEdit.AutoSaveModule;
+using MajdataEdit.ChartShare;
 using MajdataEdit.MaiMuriDX;
 using MajdataEdit.SyntaxModule;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
 using Python.Runtime;
 using System.ComponentModel;
@@ -311,7 +313,7 @@ public partial class MainWindow : Window
 
     private void MenuItem_GitHub_Click(object? sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo() { FileName = "https://github.com/LingFeng-bbben/MajdataView", UseShellExecute = true });
+        Process.Start(new ProcessStartInfo() { FileName = "https://github.com/re-poem/MajdataViewX", UseShellExecute = true });
     }
 
     private void MenuItem_SoundSetting_Click(object? sender, RoutedEventArgs e)
@@ -648,6 +650,11 @@ public partial class MainWindow : Window
         SimaiProcess.ClearNoteListPlayedState();
         ghostCusorPositionTime = (float)time;
         if (!isPlaying) DrawWave();
+
+        if (ShareMode)
+        {
+            _client!.InvokeAsync(nameof(ChartHub.Moving), GetRawFumenPosition());
+        }
     }
 
     private async void FumenContent_TextChanged(object sender, TextChangedEventArgs e)
@@ -674,6 +681,15 @@ public partial class MainWindow : Window
         {
             SwitchFumenOverwriteMode();
             e.Handled = true;
+        }
+    }
+
+    private void FumenContent_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        // 只有当垂直滚动发生变化时才重绘
+        if (e.VerticalChange != 0 || e.ExtentHeightChange != 0)
+        {
+            RenderAllCursors();
         }
     }
 
@@ -726,7 +742,6 @@ public partial class MainWindow : Window
     }
 
 
+
     #endregion
-
-
 }
