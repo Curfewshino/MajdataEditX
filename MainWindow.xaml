@@ -11,6 +11,26 @@
     mc:Ignorable="d"
     Title="MajdataEdit" Height="589" Width="720.5" Loaded="Window_Loaded" Closing="Window_Closing" MinHeight="517"
     WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Storyboard x:Key="CoverHide">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Cover" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <EasingDoubleKeyFrame KeyTime="00:00:00.1140000" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Cover" Storyboard.TargetProperty="(UIElement.Visibility)">
+                <DiscreteObjectKeyFrame KeyTime="00:00:00.1140000" Value="{x:Static Visibility.Collapsed}"/>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="CoverShow">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Cover" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <EasingDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="00:00:00.2000000" Value="1"/>
+            </DoubleAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Cover" Storyboard.TargetProperty="(UIElement.Visibility)">
+                <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}"/>
+                <DiscreteObjectKeyFrame KeyTime="00:00:00.2000000" Value="{x:Static Visibility.Visible}"/>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+    </Window.Resources>
 
     <Grid x:Name="Global_Grid" Margin="0" DragEnter="Grid_DragEnter" AllowDrop="True" Drop="Grid_Drop" Background="{StaticResource WindowBackground}">
         <Grid.RowDefinitions>
@@ -125,17 +145,28 @@
                   Foreground="{DynamicResource ButtonForeground}" HorizontalContentAlignment="Right"
                   Click="FollowPlayCheck_Click" Background="{DynamicResource ButtonsBackground}"
                   Template="{DynamicResource DarkCheck}" Grid.Row="1" Grid.Column="1" />
-        <RichTextBox x:Name="FumenContent"
-                     ScrollViewer.ScrollChanged = "FumenContent_ScrollChanged"
-                     Padding="0,5" FontFamily="Consolas"
-                     Foreground="#FFE8E8E8" TextChanged="FumenContent_TextChanged"
-                     Margin="102,29,10,90" HorizontalScrollBarVisibility="Auto"
-                     VerticalScrollBarVisibility="Visible"
-                     SelectionChanged="FumenContent_SelectionChanged" Grid.ColumnSpan="2"
-                     InputMethod.IsInputMethodEnabled="False"
-                     AutoWordSelection="False"
-                     PreviewKeyDown="FumenContent_OnPreviewKeyDown" Grid.Row="1" Grid.Column="1">
-            <RichTextBox.Resources>
+        <TextBox x:Name="FumenContent"
+                AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                BorderThickness="1" Foreground="#FFE8E8E8" 
+                Padding="0,5" Margin="102,29,10,90" 
+                FontFamily="Consolas" FontSize="14" 
+                FocusVisualStyle="{x:Null}" 
+                VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto"
+                InputMethod.IsInputMethodEnabled="False"
+                AutoWordSelection="False"
+                ScrollViewer.ScrollChanged = "FumenContent_ScrollChanged"
+                TextChanged="FumenContent_TextChanged"
+                SelectionChanged="FumenContent_SelectionChanged" 
+                PreviewKeyDown="FumenContent_OnPreviewKeyDown" 
+                Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
+            <TextBox.Background>
+                <SolidColorBrush Color="#FF050505" Opacity="0.3" />
+            </TextBox.Background>
+            <TextBox.Resources>
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="Block.LineHeight" Value="28.5"/>
+                </Style>
+                
                 <RoutedUICommand x:Key="PlayAndPause" Text="PlayAndPause" />
                 <RoutedUICommand x:Key="SaveFile" Text="SaveFile" />
                 <RoutedUICommand x:Key="StopPlaying" Text="StopPlaying" />
@@ -148,30 +179,23 @@
                 <RoutedUICommand x:Key="Mirror180" Text="Mirror180" />
                 <RoutedUICommand x:Key="Mirror45" Text="Mirror45" />
                 <RoutedUICommand x:Key="MirrorCcw45" Text="MirrorCcw45" />
-            </RichTextBox.Resources>
-            <RichTextBox.Background>
-                <SolidColorBrush Color="#FF050505" Opacity="0.3" />
-            </RichTextBox.Background>
-            <!--Bindings are dynamicly added via ReadEditorSetting()-->
-            <RichTextBox.CommandBindings>
+            </TextBox.Resources>
+            
+            <TextBox.CommandBindings>
                 <CommandBinding Command="{StaticResource PlayAndPause}" CanExecute="PlayAndPause_CanExecute" />
                 <CommandBinding Command="{StaticResource SaveFile}" CanExecute="SaveFile_Command_CanExecute" />
                 <CommandBinding Command="{StaticResource StopPlaying}" CanExecute="StopPlaying_CanExecute" />
                 <CommandBinding Command="{StaticResource SendToView}" CanExecute="SendToView_CanExecute" />
-                <CommandBinding Command="{StaticResource IncreasePlaybackSpeed}"
-                                CanExecute="IncreasePlaybackSpeed_CanExecute" />
-                <CommandBinding Command="{StaticResource DecreasePlaybackSpeed}"
-                                CanExecute="DecreasePlaybackSpeed_CanExecute" />
+                <CommandBinding Command="{StaticResource IncreasePlaybackSpeed}" CanExecute="IncreasePlaybackSpeed_CanExecute" />
+                <CommandBinding Command="{StaticResource DecreasePlaybackSpeed}" CanExecute="DecreasePlaybackSpeed_CanExecute" />
                 <CommandBinding Command="{StaticResource Find}" CanExecute="FindCommand_CanExecute" />
                 <CommandBinding Command="{StaticResource MirrorLR}" CanExecute="MirrorLRCommand_CanExecute" />
                 <CommandBinding Command="{StaticResource MirrorUD}" CanExecute="MirrorUDCommand_CanExecute" />
                 <CommandBinding Command="{StaticResource Mirror180}" CanExecute="Mirror180Command_CanExecute" />
                 <CommandBinding Command="{StaticResource Mirror45}" CanExecute="Mirror45Command_CanExecute" />
                 <CommandBinding Command="{StaticResource MirrorCcw45}" CanExecute="MirrorCcw45Command_CanExecute" />
-
-            </RichTextBox.CommandBindings>
-            <FlowDocument />
-        </RichTextBox>
+            </TextBox.CommandBindings>
+        </TextBox>
         <Canvas x:Name="CursorOverlay" 
                 IsHitTestVisible="False" 
                 ClipToBounds="True" 
@@ -281,7 +305,7 @@
                      VerticalAlignment="Top" Width="231" VerticalContentAlignment="Center" />
         </Grid>
         <StackPanel x:Name="OverrideModeTipsPopup" Margin="102,29,0,0" HorizontalAlignment="Left"
-                    VerticalAlignment="Top" Orientation="Horizontal" Visibility="Collapsed" Grid.Row="1" Height="0" Width="0" Grid.Column="1">
+                    VerticalAlignment="Top" Orientation="Horizontal" Visibility="Collapsed" Grid.Row="1" Height="auto" Width="auto" Grid.Column="1">
             <StackPanel.Background>
                 <SolidColorBrush Color="Black" Opacity="0.8" />
             </StackPanel.Background>
@@ -297,8 +321,7 @@
                 <TextBlock TextDecorations="Underline" FontSize="10" Text="{lex:Loc Key=WhatsThis}" />
             </Label>
         </StackPanel>
-        <Rectangle x:Name="Cover" Fill="#FF1F1F1F" Margin="0,18,0,0" Stroke="Black" Grid.ColumnSpan="3"
-                   d:IsHidden="True" Grid.RowSpan="2" Grid.Row="1" />
+        <Rectangle x:Name="Cover" Fill="#FF1F1F1F" Margin="0,18,0,0" Stroke="Black" Grid.ColumnSpan="3" Grid.RowSpan="2" Grid.Row="1" Opacity="1" d:IsHidden="True"/>
         <StatusBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="20" Background="{StaticResource WindowBackground}">
             <StatusBarItem>
                 <TextBlock x:Name="ShareStatus" Foreground="{StaticResource HelperForeground}"/>

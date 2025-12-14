@@ -225,4 +225,16 @@
   <data name="Connect" xml:space="preserve">
     <value />
   </data>
+  <data name="UserJoined" xml:space="preserve">
+    <value />
+  </data>
+  <data name="InvalidBPMBeat" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectFail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectionClosed" xml:space="preserve">
+    <value />
+  </data>
 </root>

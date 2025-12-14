@@ -132,86 +132,104 @@
   <data name="Message" xml:space="preserve">
     <value>メッセージ</value>
   </data>
+  <data name="MuriDXSErrorOverlap" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXSErrorOverlapDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXSErrorSlideHeadTap" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXSErrorSlideHeadTapDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXSErrorTapOnSlide" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXSErrorTapOnSlideDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorMultiTouchDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideTooFast" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideTooFastDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorOverlap" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorOverlapDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideHeadTap" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorSlideHeadTapDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorTapOnSlide" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MuriDXDErrorTapOnSlideDetail" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareEmpty" xml:space="preserve">
+    <value />
+  </data>
+  <data name="StartChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="StopChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="DisconnectChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectChartShare" xml:space="preserve">
+    <value />
+  </data>
+  <data name="CloseChart" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareModeServer" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ViewSetting" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareSetting" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareUserName" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ShareColorHex" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectIP" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectPort" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ConnectToView" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value />
+  </data>
+  <data name="UserJoined" xml:space="preserve">
+    <value />
+  </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="MuriDXSErrorOverlap" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXSErrorOverlapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXSErrorSlideHeadTap" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXSErrorSlideHeadTapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXSErrorTapOnSlide" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXSErrorTapOnSlideDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorMultiTouch" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorMultiTouchDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorSlideTooFast" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorSlideTooFastDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorOverlap" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorOverlapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorSlideHeadTap" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorSlideHeadTapDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorTapOnSlide" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="MuriDXDErrorTapOnSlideDetail" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ShareEmpty" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="StartChartShare" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="StopChartShare" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="DisconnectChartShare" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ConnectChartShare" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="CloseChart" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ShareModeServer" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ViewSetting" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ShareSetting" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ShareUserName" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ShareColorHex" type="System.Resources.ResXNullRef, System.Windows.Forms">
+  <data name="InvalidBPMBeat" type="System.Resources.ResXNullRef, System.Windows.Forms">
     <value />
   </data>
   <data name="AskCloseView" xml:space="preserve">
@@ -616,17 +634,5 @@ Open Browser to download latest update of Majdata?</value>
   </data>
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[Syntax警告] チャートは「E」で終わる必要があります : "{0}"</value>
-  </data>
-  <data name="ConnectIP" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ConnectPort" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="ConnectToView" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-  </data>
-  <data name="Connect" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
   </data>
 </root>

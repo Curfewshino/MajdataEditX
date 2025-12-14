@@ -29,6 +29,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xml.Linq;
@@ -38,11 +39,13 @@ using WPFLocalizeExtension.Engine;
 using WPFLocalizeExtension.Extensions;
 using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
+using ColorConverter = System.Drawing.ColorConverter;
 using DashStyle = System.Drawing.Drawing2D.DashStyle;
 using Font = System.Drawing.Font;
 using LinearGradientBrush = System.Drawing.Drawing2D.LinearGradientBrush;
 using Pen = System.Drawing.Pen;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using Point = System.Windows.Point;
 using Timer = System.Timers.Timer;
 
 namespace MajdataEdit;
@@ -80,7 +83,8 @@ public partial class MainWindow : Window
 
     private bool isSaved = true;
     private EditorControlMethod lastEditorState;
-    private TextSelection? lastFindPosition;
+    private int findPosition;
+    private int lastFindPosition;
 
     private double lastMousePointX; //Used for drag scroll
 
@@ -106,152 +110,90 @@ public partial class MainWindow : Window
     private Dictionary<string, RemoteCursor> _cursors = new();
 
     //*TEXTBOX CONTROL
-    private string GetRawFumenText()
-    {
-        var text = new TextRange(FumenContent.Document.ContentStart, FumenContent.Document.ContentEnd).Text!;
-
-        text = text.Replace("\r", "");
-        // 亲爱的bbben在这里对text进行了Trim 引发了行位置不正确的BUG 谨此纪念（
-        return text;
-    }
+    private string GetRawFumenText() => FumenContent.Text.Replace("\r", "");
 
     private void SetRawFumenText(string content)
     {
         isLoading = true;
-        FumenContent.Document.Blocks.Clear();
+
         if (content == null)
         {
             isLoading = false;
             return;
         }
 
-        var lines = content.Split('\n');
-        foreach (var line in lines)
-        {
-            var paragraph = new Paragraph();
-            paragraph.Inlines.Add(line);
-            FumenContent.Document.Blocks.Add(paragraph);
-        }
-
-        _shadowText = content;
+        FumenContent.Text = content.Replace("\r", "");
 
         isLoading = false;
     }
 
-    private long GetRawFumenPosition()
+    private int GetRawFumenPosition() => ToRawFumenPosition(FumenContent.CaretIndex);
+
+    private void SetRawFumenPosition(int position) => FumenContent.Select(ToUiIndex(position), 0);
+
+    private void SetRawFumenPosition(int positionX, int positionY)
     {
-        TextPointer caret = FumenContent.CaretPosition;
-        TextPointer start = FumenContent.Document.ContentStart;
+        var text = FumenContent.Text;
+        int currentLine = 0;
+        int currentIndex = 0;
+        int length = text.Length;
 
-        // 如果光标在开头，直接返回0
-        if (caret.CompareTo(start) <= 0) return 0;
-
-        long count = 0;
-
-        // 遍历所有 Block
-        foreach (Block block in FumenContent.Document.Blocks)
+        while (currentLine < positionY && currentIndex <= length)
         {
-            if (block is Paragraph para)
-            {
-                // 如果光标在这个段落之前（说明光标还没到这个段落），那肯定不用继续算后面了
-                // 但因为 Block 是顺序的，我们主要判断光标是否在段落“内部”或“之后”
-
-                // 快速判断：光标是否在这个段落之后？
-                // ContentEnd 包含段落结尾标记，CompareTo < 0 说明光标在该段落内部或之前
-                if (caret.CompareTo(para.ContentEnd) < 0)
-                {
-                    // 光标就在这个段落里！
-                    foreach (Inline inline in para.Inlines)
-                    {
-                        if (inline is Run run)
-                        {
-                            // 判断光标是否在这个 Run 之后
-                            if (caret.CompareTo(run.ContentEnd) <= 0)
-                            {
-                                // 光标在这个 Run 内部
-                                // 计算 Run 起点到光标的距离
-                                // GetOffsetToPosition 返回符号距离，在 Run 内部等于字符距离
-                                int offset = run.ContentStart.GetOffsetToPosition(caret);
-                                return count + offset;
-                            }
-
-                            // 光标在这个 Run 之后，加上整个 Run 的长度
-                            count += run.Text.Length;
-                        }
-                    }
-                    // 如果到了这里，说明光标在段落末尾（换行符前）
-                    return count;
-                }
-
-                // 光标在这个段落之后，累加该段落所有文本长度
-                foreach (Inline inline in para.Inlines)
-                {
-                    if (inline is Run r) count += r.Text.Length;
-                }
-
-                // 加上换行符长度
-                count += 1;
-            }
+            if (text[currentIndex] == '\n')
+                currentLine++;
+            currentIndex++;
         }
 
-        return count;
+        int finalIndex = currentIndex + positionX;
+
+        FumenContent.Select(finalIndex, 0);
     }
 
-    // 文档结构是由 Split('\n') 生成的简单段落列表
-    public void SetRawFumenPosition(long targetIndex)
+    private int ToRawFumenPosition(int uiIndex)
     {
-        if (targetIndex < 0) targetIndex = 0;
+        string text = FumenContent.Text;
 
-        long currentCount = 0;
-        TextPointer? targetPointer = null;
+        if (string.IsNullOrEmpty(text)) return 0;
+        if (uiIndex > text.Length) uiIndex = text.Length;
+        if (uiIndex < 0) return 0;
 
-        foreach (Block block in FumenContent.Document.Blocks)
+        int rCount = 0;
+        // 遍历到当前光标位置，统计有多少个 \r
+        for (int i = 0; i < uiIndex; i++)
         {
-            if (block is Paragraph para)
+            if (text[i] == '\r')
             {
-                // 优化点：直接遍历 Inlines，通常每行只有一个 Run
-                foreach (Inline inline in para.Inlines)
-                {
-                    if (inline is Run run)
-                    {
-                        int runLen = run.Text.Length;
-
-                        // 目标是否在这个 Run
-                        if (currentCount + runLen >= targetIndex)
-                        {
-                            int offsetInRun = (int)(targetIndex - currentCount);
-
-                            // 这里的 GetPositionAtOffset 是安全的，因为 Run 内部 1char = 1offset
-                            targetPointer = run.ContentStart.GetPositionAtOffset(offsetInRun, LogicalDirection.Forward);
-                            goto Found;
-                        }
-
-                        currentCount += runLen;
-                    }
-                }
-
-                // 处理完一行后，加上换行符的长度
-                currentCount += 1;
-
-                // 如果目标正好是换行符的位置，光标应该定位在该段落末尾
-                if (currentCount > targetIndex)
-                {
-                    targetPointer = para.ContentEnd;
-                    goto Found;
-                }
+                rCount++;
             }
         }
 
-    Found:
-        if (targetPointer != null)
+        return uiIndex - rCount;
+    }
+
+    private int ToUiIndex(int rawFumenPosition)
+    {
+        string text = FumenContent.Text;
+
+        if (string.IsNullOrEmpty(text) || rawFumenPosition < 0) return 0;
+
+        int currentRawCount = 0;
+        int uiIndex = 0;
+
+        while (uiIndex < text.Length && currentRawCount < rawFumenPosition)
         {
-            FumenContent.CaretPosition = targetPointer;
-            FumenContent.Focus();
+            // 如果遇到 \r，只增加 UI 索引（跳过它），逻辑计数不变
+            if (text[uiIndex] == '\r')
+                uiIndex++;
+            else
+            {
+                // 普通字符（包括 \n）：UI 走一步，逻辑计数也走一步
+                uiIndex++;
+                currentRawCount++;
+            }
         }
-        else
-        {
-            FumenContent.CaretPosition = FumenContent.Document.ContentEnd;
-        }
+
+        return uiIndex;
     }
 
     private void SeekTextFromTime()
@@ -266,10 +208,8 @@ public partial class MainWindow : Window
         var theNote = timingList[0];
         timingList.Clear();
         timingList.AddRange(SimaiProcess.timinglist);
-        var indexOfTheNote = timingList.IndexOf(theNote);
-        var pointer = FumenContent.Document.Blocks.ToList()[theNote.rawTextPositionY].ContentStart
-            .GetPositionAtOffset(theNote.rawTextPositionX);
-        FumenContent.Selection.Select(pointer, pointer);
+        //var indexOfTheNote = timingList.IndexOf(theNote);
+        SetRawFumenPosition(theNote.rawTextPositionX - 1, theNote.rawTextPositionY);
     }
 
     private void SeekTextFromIndex(int noteGroupIndex)
@@ -277,18 +217,16 @@ public partial class MainWindow : Window
         if (SimaiProcess.notelist.Count > noteGroupIndex + 1 && noteGroupIndex >= 0)
         {
             var theNote = SimaiProcess.notelist[noteGroupIndex];
-            var pointer = FumenContent.Document.Blocks.ToList()[theNote.rawTextPositionY].ContentStart
-                .GetPositionAtOffset(theNote.rawTextPositionX);
-            FumenContent.Selection.Select(pointer, pointer);
+            SetRawFumenPosition(theNote.rawTextPositionX - 1, theNote.rawTextPositionY);
         }
     }
 
     public void ScrollToFumenContentSelection(int positionX, int positionY)
     {
         // 这玩意用于其他窗口来滚动Scroll 因为涉及到好多变量都是private的
-        var pointer = FumenContent.Document.Blocks.ToList()[positionY].ContentStart.GetPositionAtOffset(positionX);
+        FumenContent.CaretIndex =
+            FumenContent.GetCharacterIndexFromLineIndex(positionX) + positionY;
         FumenContent.Focus();
-        FumenContent.Selection.Select(pointer, pointer);
         Focus();
 
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
@@ -314,9 +252,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (FumenContent.Selection == lastFindPosition)
+        if (FumenContent.SelectionStart == lastFindPosition)
         {
-            FumenContent.Selection.Text = ReplaceText.Text;
+            FumenContent.SelectedText = ReplaceText.Text;
             FindAndScroll();
         }
         else
@@ -325,57 +263,32 @@ public partial class MainWindow : Window
         }
     }
 
-    public TextRange? GetTextRangeFromPosition(TextPointer position, string input)
-    {
-        TextRange? textRange = null;
-
-        while (position != null)
-        {
-            if (position.CompareTo(FumenContent.Document.ContentEnd) == 0) break;
-
-            if (position.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
-            {
-                var textRun = position.GetTextInRun(LogicalDirection.Forward);
-                var stringComparison = StringComparison.CurrentCultureIgnoreCase;
-                var indexInRun = textRun.IndexOf(input, stringComparison);
-
-                if (indexInRun >= 0)
-                {
-                    position = position.GetPositionAtOffset(indexInRun);
-                    var nextPointer = position.GetPositionAtOffset(input.Length);
-                    textRange = new TextRange(position, nextPointer);
-
-                    // If a none-WholeWord match is found, directly terminate the loop.
-                    position = position.GetPositionAtOffset(input.Length);
-                    break;
-                }
-
-                // If a match is not found, go over to the next context position after the "textRun".
-                position = position.GetPositionAtOffset(textRun.Length);
-            }
-            else
-            {
-                //If the current position doesn't represent a text context position, go to the next context position.
-                // This can effectively ignore the formatting or embed element symbols.
-                position = position.GetNextContextPosition(LogicalDirection.Forward);
-            }
-        }
-
-        return textRange;
-    }
-
     public void FindAndScroll()
     {
-        var position = GetTextRangeFromPosition(FumenContent.CaretPosition, InputText.Text);
-        if (position == null)
+        string content = FumenContent.Text;
+        string keyword = InputText.Text;
+
+        // 为空
+        if (string.IsNullOrEmpty(keyword)) return;
+        // 防止 lastFindPosition 越界（比如文本被删除变短了）
+        if (findPosition >= content.Length) findPosition = 0;
+        // 下一个
+        int position = content.IndexOf(keyword, findPosition);
+        // 没有下一个了
+        if (position == -1 && findPosition > 0) position = content.IndexOf(keyword, 0);
+        //彻底没找到
+        if (position == -1)
         {
             isReplaceConformed = false;
+            findPosition = 0; 
             return;
         }
 
-        FumenContent.Selection.Select(position.Start, position.End);
-        lastFindPosition = FumenContent.Selection;
+        FumenContent.Select(position, keyword.Length);
+        lastFindPosition = position;
+        findPosition = position + keyword.Length;
         FumenContent.Focus();
+
         isReplaceConformed = true;
     }
 
@@ -389,10 +302,10 @@ public partial class MainWindow : Window
                 return;
             }
 
-        if (ChartServer.App != null) await ToggleChartShare();
+        if (Cover.Visibility != Visibility.Visible)
+            ((Storyboard)Resources["CoverShow"]).Begin();
 
-        currentTimeRefreshTimer.Stop();
-        visualEffectRefreshTimer.Stop();
+        if (ChartServer.App != null) await ToggleChartShare();
 
         soundSetting.Close();
         SaveSetting();
@@ -401,12 +314,12 @@ public partial class MainWindow : Window
         audioDir = "";
         maidataDir = "";
         //SetRawFumenText("");
-        FumenContent.Document.Blocks.Clear();
+        FumenContent.Clear();
         SimaiProcess.ClearData();
         LevelSelector.SelectedItem = "";
         OffsetTextBox.Text = "";
 
-        Cover.Visibility = Visibility.Visible;
+        //Cover.Visibility = Visibility.Visible;
         MenuEdit.IsEnabled = false;
         VolumnSetting.IsEnabled = false;
         MenuMuriCheck.IsEnabled = false;
@@ -417,9 +330,9 @@ public partial class MainWindow : Window
         SetSavedState(true);
         TheWindow.Title = GetWindowsTitleString();
     }
-    private async void initFromFile(string path) //file name should not be included in path
+    private void InitFromFile(string path) //file name should not be included in path
     {
-        if (ChartServer.App != null) await ToggleChartShare();
+        if (ChartServer.App != null) _ = ToggleChartShare(); //不管了自生自灭吧
 
         if (soundSetting != null) soundSetting.Close();
         if (editorSetting == null) ReadEditorSetting();
@@ -485,6 +398,8 @@ public partial class MainWindow : Window
 
         if (!SimaiProcess.ReadData(dataPath)) return;
 
+        if (Cover.Visibility == Visibility.Visible)
+            ((Storyboard)Resources["CoverHide"]).Begin();
 
         LevelSelector.SelectedItem = LevelSelector.Items[0];
         ReadSetting();
@@ -496,7 +411,7 @@ public partial class MainWindow : Window
 
         OffsetTextBox.Text = SimaiProcess.first.ToString();
 
-        Cover.Visibility = Visibility.Collapsed;
+        //Cover.Visibility = Visibility.Collapsed;
         MenuEdit.IsEnabled = true;
         VolumnSetting.IsEnabled = true;
         MenuMuriCheck.IsEnabled = true;
@@ -510,12 +425,13 @@ public partial class MainWindow : Window
         SetShareMode(false);
     }
 
-    private async Task initFromShare(string fileUrl, GuestInitDto data)
+    private async Task InitFromShare(string fileUrl, GuestInitDto data)
     {
         if (soundSetting != null) soundSetting.Close();
         if (editorSetting == null) ReadEditorSetting();
 
         var basePath = Environment.CurrentDirectory + "/Sharing";
+        Directory.CreateDirectory(basePath); //防止没有Sharing文件夹
 
         useOgg = data.UseOgg;
 
@@ -567,7 +483,7 @@ public partial class MainWindow : Window
 
         //ReadSetting();
         var setting = JsonConvert.DeserializeObject<MajSetting>(File.ReadAllText(localSettingPath));
-        SetBgmPosition(setting.lastEditTime);
+        SetBgmPosition(setting!.lastEditTime);
         Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
         Bass.BASS_ChannelSetAttribute(trackStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
         Bass.BASS_ChannelSetAttribute(allperfectStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
@@ -590,6 +506,8 @@ public partial class MainWindow : Window
         SeekTextFromTime();
         SimaiProcess.Serialize(GetRawFumenText());
         FumenContent.Focus();
+        if (Cover.Visibility == Visibility.Visible)
+            ((Storyboard)Resources["CoverHide"]).Begin();
         DrawWave();
 
         OffsetTextBox.Text = SimaiProcess.first.ToString();
@@ -1325,6 +1243,7 @@ public partial class MainWindow : Window
         switch (playMethod)
         {
             case PlayMethod.Record:
+                Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, originFreq * GetPlaybackSpeed());
                 Bass.BASS_ChannelSetPosition(bgmStream, 0);
                 startAt = DateTime.Now.AddSeconds(5d);
                 //TODO: i18n
@@ -1349,6 +1268,7 @@ public partial class MainWindow : Window
             case PlayMethod.Op:
                 generateSoundEffectList(0.0, isOpIncluded);
                 InternalSwitchWindow(false);
+                Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, originFreq * GetPlaybackSpeed());
                 Bass.BASS_ChannelSetPosition(bgmStream, 0);
                 startAt = DateTime.Now.AddSeconds(5d);
                 Bass.BASS_ChannelPlay(trackStartStream, true);
@@ -1725,7 +1645,7 @@ public partial class MainWindow : Window
     {
         fumenOverwriteMode = !fumenOverwriteMode;
 
-        //修改覆盖模式启用状态
+        // 修改覆盖模式启用状态
         // fetch TextEditor from FumenContent
         var textEditorProperty =
             typeof(TextBox).GetProperty("TextEditor", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -1889,17 +1809,18 @@ public partial class MainWindow : Window
 
     public void OpenFile(string path)
     {
-        initFromFile(path);
+        InitFromFile(path);
     }
 
-    private async Task ToggleChartShare()
+    private async Task ToggleChartShare(bool initIfClose = false)
     {
         if (ChartServer.App != null)
         {
+            SetShareMode(false);
+
             SaveFumen(true);
             isHost = false;
-            await ChartServer.StopAsync();
-            await _client!.StopAsync();
+            await Task.WhenAll(_client!.StopAsync(), ChartServer.StopAsync());
             _client = null;
 
             TheWindow.Height -= 20;
@@ -1909,8 +1830,8 @@ public partial class MainWindow : Window
             Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
             Menu_ConnectChartShare.IsEnabled = true;
 
-            initFromFile(originMaidataDir);
-            
+            if (initIfClose) InitFromFile(originMaidataDir);
+
             return;
         }
 
@@ -1965,7 +1886,7 @@ public partial class MainWindow : Window
         {
             Dispatcher.Invoke(async () =>
             {
-                await initFromShare(fileUrl, data);
+                await InitFromShare(fileUrl, data);
             });
         });
 
@@ -1974,7 +1895,7 @@ public partial class MainWindow : Window
         {
             await Dispatcher.InvokeAsync(() =>
             {
-
+                ShowStatusMessage(string.Format(GetLocalizedString("UserJoined"), user.UserName));
             });
         });
 
@@ -1983,7 +1904,7 @@ public partial class MainWindow : Window
         {
             await Dispatcher.InvokeAsync(() =>
             {
-
+                ShowStatusMessage(string.Format(GetLocalizedString("UserLeft"), user.UserName, message));
             });
         });
 
@@ -2000,7 +1921,7 @@ public partial class MainWindow : Window
                 string newText = (string)result[0];
 
                 // 保存光标位置
-                long savedIndex = GetRawFumenPosition();
+                var savedIndex = GetRawFumenPosition();
                 // 简单的 Diff 修正
                 foreach (var patch in patches)
                 {
@@ -2010,18 +1931,8 @@ public partial class MainWindow : Window
                     }
                 }
 
-                FumenContent.Document.Blocks.Clear();
-                var lines = newText.Split('\n');
-                foreach (var line in lines)
-                {
-                    var paragraph = new Paragraph();
-                    paragraph.Inlines.Add(line);
-                    FumenContent.Document.Blocks.Add(paragraph);
-                }
-                _shadowText = newText;
-
+                FumenContent.Text = _shadowText = newText;
                 SetRawFumenPosition(savedIndex);
-
                 FumenContent.Focus();
 
                 _isRemoteUpdate = false;
@@ -2047,6 +1958,19 @@ public partial class MainWindow : Window
                 else SaveFumen(true);
             });
         });
+
+        //客户端意外关闭
+        _client.Closed += async (exception) =>
+        {
+            await Dispatcher.Invoke(async () =>
+            {
+                string reason = exception != null ? exception.Message : "服务器已停止或网络中断";
+                MessageBox.Show(string.Format(GetLocalizedString("ConnectionClosed"), reason), GetLocalizedString("Error"));
+
+                _client = null;
+                await DisconnectToChartServer();
+            });
+        };
 
         await _client.StartAsync();
         await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto() { 
@@ -2091,31 +2015,36 @@ public partial class MainWindow : Window
         await _client.InvokeAsync(nameof(ChartHub.Typing), patchText);
     }
 
+    private async void ShowStatusMessage(string message, int durationMs = 3000)
+    {
+        ShareStatus.Text = message;
+        await Task.Delay(durationMs);
+        if (ShareStatus.Text == message)
+        {
+            ShareStatus.Text = string.Format(GetLocalizedString("ShareModeServer"), GetLocalIPAddress());
+        }
+    }
+
     private void RenderAllCursors()
     {
-        CursorOverlay.Children.Clear(); // 清空重画
+        FumenContent.UpdateLayout();
+        CursorOverlay.Children.Clear();
 
         foreach (var kvp in _cursors)
         {
             var cursor = kvp.Value;
 
-            // 把纯文本索引转为 TextPointer
-            TextPointer ptr = GetPointerFromRawFumenIndex(cursor.Index);
-
-            if (ptr == null) continue;
-
-            // 获取屏幕坐标
-            Rect rect = ptr.GetCharacterRect(LogicalDirection.Forward);
-
-            // 越界检查
-            if (rect.Bottom < 0 || rect.Top > FumenContent.ViewportHeight) continue;
-
+            Rect rect = FumenContent.GetRectFromCharacterIndex(ToUiIndex(cursor.Index));
+            Point screenPos = FumenContent.TranslatePoint(rect.TopLeft, CursorOverlay);
             var brush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(cursor.ColorHex));
-            Border cursorLine = new Border
+
+            Border cursorLine = new()
             {
-                Width = 2,
-                Height = rect.Height > 0 ? rect.Height : 20,
-                Background = brush
+                Width = 1,
+                // 如果是空行，rect.Height 可能会很小，给个保底值 18
+                Height = rect.Height > 18 ? rect.Height : 18,
+                Background = brush,
+                IsHitTestVisible = false
             };
 
             // 名字标签
@@ -2123,24 +2052,24 @@ public partial class MainWindow : Window
             {
                 Text = cursor.UserName,
                 FontSize = 10,
-                Foreground = System.Windows.Media.Brushes.White,
+                Foreground = System.Windows.Media.Brushes.WhiteSmoke,
                 Padding = new Thickness(2, 0, 2, 0)
             };
 
-            // --- F. 定位并添加到画布 ---
-            // 加上 RTB 的 Padding 修正 (通常 RTB 左边有 5px 左右的 Padding)
-            double left = rect.X + FumenContent.Padding.Left;
-            double top = rect.Y + FumenContent.Padding.Top;
-
-            Canvas.SetLeft(cursorLine, left);
-            Canvas.SetTop(cursorLine, top);
-
-            Canvas.SetLeft(nameTag, left);
-            Canvas.SetTop(nameTag, top - 15); // 名字顶在头上
+            Canvas.SetLeft(cursorLine, screenPos.X);
+            Canvas.SetTop(cursorLine, screenPos.Y);
+            Canvas.SetLeft(nameTag, screenPos.X + 0.5);
+            Canvas.SetTop(nameTag, screenPos.Y - 7);
 
             CursorOverlay.Children.Add(cursorLine);
             CursorOverlay.Children.Add(nameTag);
         }
+    }
+
+    private void ApplyMirror(Mirror.HandleType handleType)
+    {
+        var result = Mirror.NoteMirrorHandle(FumenContent.SelectedText, handleType);
+        FumenContent.SelectedText = result;
     }
 
     // 获取本机局域网IP
@@ -2157,32 +2086,7 @@ public partial class MainWindow : Window
         return "127.0.0.1";
     }
 
-    private TextPointer GetPointerFromRawFumenIndex(long targetIndex)
-    {
-        long count = 0;
-        foreach (Block block in FumenContent.Document.Blocks)
-        {
-            if (block is Paragraph para)
-            {
-                // 每行只有一个 Run
-                if (para.Inlines.FirstInline is Run run)
-                {
-                    int len = run.Text.Length;
-                    if (count + len >= targetIndex)
-                    {
-                        // 目标在这一行中间
-                        return run.ContentStart.GetPositionAtOffset((int)(targetIndex - count));
-                    }
-                    count += len;
-                }
-                // 加上换行符
-                count += 1;
-                // 如果目标正好是换行符的位置
-                if (count > targetIndex) return para.ContentEnd;
-            }
-        }
-        return null;
-    }
+
 
     //*PLAY CONTROL
 

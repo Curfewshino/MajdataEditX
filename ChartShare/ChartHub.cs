@@ -75,7 +75,7 @@ public class ChartHub : Hub<IEditorClient>
         dataService.ConnectedUsers.Remove(user!);
         dataService.UserCursors.TryRemove(Context.ConnectionId, out _);
 
-        await Clients.Caller.OnSyncCursors(new Dictionary<string, RemoteCursor>(dataService.UserCursors));
+        await Clients.All.OnSyncCursors(new Dictionary<string, RemoteCursor>(dataService.UserCursors));
 
         return base.OnDisconnectedAsync(exception);
     }

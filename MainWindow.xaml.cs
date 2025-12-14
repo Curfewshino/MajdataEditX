@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Un4seen.Bass;
+using WPFLocalizeExtension.Engine;
 using Timer = System.Timers.Timer;
 
 namespace MajdataEdit;
@@ -84,7 +85,7 @@ public partial class MainWindow : Window
                     // 尝试打开上次未正常关闭的谱面 然后再打开恢复页面
                     try
                     {
-                        initFromFile(lastEditPath);
+                        InitFromFile(lastEditPath);
                     }
                     catch (Exception error)
                     {
@@ -173,7 +174,7 @@ public partial class MainWindow : Window
                         if (!AskSave())
                             return;
                     var fileInfo = new FileInfo(path);
-                    initFromFile(fileInfo.DirectoryName!);
+                    InitFromFile(fileInfo.DirectoryName!);
                 }
             }
     }
@@ -199,7 +200,7 @@ public partial class MainWindow : Window
         {
             var fileInfo = new FileInfo(openFileDialog.FileName);
             CreateNewFumen(fileInfo.DirectoryName!);
-            initFromFile(fileInfo.DirectoryName!);
+            InitFromFile(fileInfo.DirectoryName!);
         }
     }
 
@@ -215,7 +216,7 @@ public partial class MainWindow : Window
         if ((bool)openFileDialog.ShowDialog()!)
         {
             var fileInfo = new FileInfo(openFileDialog.FileName);
-            initFromFile(fileInfo.DirectoryName!);
+            InitFromFile(fileInfo.DirectoryName!);
         }
     }
 
@@ -248,8 +249,18 @@ public partial class MainWindow : Window
         {
             new ConnectShare(async (ip, port) =>
             {
-                await ConnectToChartServer(ip, port);
-                await Dispatcher.InvokeAsync(() =>
+                try
+                {
+                    await ConnectToChartServer(ip, port);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), e.Message), GetLocalizedString("Error"));
+                    _client = null;
+                    return;
+                }
+
+            await Dispatcher.InvokeAsync(() =>
                     Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare"));
             }).ShowDialog();
         }
@@ -262,32 +273,27 @@ public partial class MainWindow : Window
 
     private void MirrorLeftRight_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var result = Mirror.NoteMirrorHandle(FumenContent.Selection.Text, Mirror.HandleType.LRMirror);
-        FumenContent.Selection.Text = result;
+        ApplyMirror(Mirror.HandleType.LRMirror);
     }
 
     private void MirrorUpDown_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var result = Mirror.NoteMirrorHandle(FumenContent.Selection.Text, Mirror.HandleType.UDMirror);
-        FumenContent.Selection.Text = result;
+        ApplyMirror(Mirror.HandleType.UDMirror);
     }
 
     private void Mirror180_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var result = Mirror.NoteMirrorHandle(FumenContent.Selection.Text, Mirror.HandleType.HalfRotation);
-        FumenContent.Selection.Text = result;
+        ApplyMirror(Mirror.HandleType.HalfRotation);
     }
 
     private void Mirror45_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var result = Mirror.NoteMirrorHandle(FumenContent.Selection.Text, Mirror.HandleType.Rotation45);
-        FumenContent.Selection.Text = result;
+        ApplyMirror(Mirror.HandleType.Rotation45);
     }
 
     private void MirrorCcw45_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var result = Mirror.NoteMirrorHandle(FumenContent.Selection.Text, Mirror.HandleType.CcwRotation45);
-        FumenContent.Selection.Text = result;
+        ApplyMirror(Mirror.HandleType.CcwRotation45);
     }
 
     private void BPMtap_MenuItem_Click(object? sender, RoutedEventArgs e)
@@ -364,6 +370,7 @@ public partial class MainWindow : Window
     }
     public void ShowMuriDXError(LaunchMaiMuriDX lmmdWindow)
     {
+        SyntaxCheck();
         for (int i = errorListWindow.ErrorListView.Items.Count - 1; i >= 0; i--)
         {
             if ((errorListWindow.ErrorListView.Items[i] as Error)!.Type is ErrorType.MuriDXS or ErrorType.MuriDXD)
@@ -376,17 +383,16 @@ public partial class MainWindow : Window
         {
             errorListWindow.ErrorListView.Items.Add(e);
         });
-        if (errorListWindow.IsVisible)
+        if (errorListWindow.IsVisible) errorListWindow.Activate();
+        else errorListWindow.Show();
+        if (errList.Count >= 100 && editorSetting!.Language == "zh-CN")
         {
-            errorListWindow.Activate();//之前已打开，则给予焦点，置顶。
-        }
-        else
-        {
-            errorListWindow.Show();//如果之前未打开，则打开。
+            MessageBox.Show("我将删除你的Majdata。");
         }
     }
     void ShowSyntaxError()
     {
+        SyntaxCheck();
         for (int i = errorListWindow.ErrorListView.Items.Count - 1; i >= 0; i--)
         {
             if ((errorListWindow.ErrorListView.Items[i] as Error)!.Type == ErrorType.Syntax)
@@ -399,14 +405,8 @@ public partial class MainWindow : Window
         {
             errorListWindow.ErrorListView.Items.Add(e);
         });
-        if (errorListWindow.IsVisible)
-        {
-            errorListWindow.Activate();//之前已打开，则给予焦点，置顶。
-        }
-        else
-        {
-            errorListWindow.Show();//如果之前未打开，则打开。
-        }
+        if (errorListWindow.IsVisible) errorListWindow.Activate();
+        else errorListWindow.Show();
     }
     private void SyntaxCheckButton_Click(object sender, MouseButtonEventArgs e)
     {
@@ -523,27 +523,27 @@ public partial class MainWindow : Window
 
     private void MirrorLRCommand_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
-        MirrorLeftRight_MenuItem_Click(sender, null);
+        ApplyMirror(Mirror.HandleType.LRMirror);
     }
 
     private void MirrorUDCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        MirrorUpDown_MenuItem_Click(sender, null);
+        ApplyMirror(Mirror.HandleType.UDMirror);
     }
 
     private void Mirror180Command_CanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        Mirror180_MenuItem_Click(sender, null);
+        ApplyMirror(Mirror.HandleType.HalfRotation);
     }
 
     private void Mirror45Command_CanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        Mirror45_MenuItem_Click(sender, null);
+        ApplyMirror(Mirror.HandleType.Rotation45);
     }
 
     private void MirrorCcw45Command_CanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        MirrorCcw45_MenuItem_Click(sender, null);
+        ApplyMirror(Mirror.HandleType.CcwRotation45);
     }
 
     #endregion
@@ -624,9 +624,8 @@ public partial class MainWindow : Window
 
     private void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
-        NoteNowText.Content = "" + (
-            new TextRange(FumenContent.Document.ContentStart, FumenContent.CaretPosition).Text.Replace("\r", "")
-                .Count(o => o == '\n') + 1) + " 行";
+        NoteNowText.Content = 
+            (FumenContent.SelectedText.Replace("\r", "").Count(o => o == '\n') + 1) + " 行";
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
         //TODO:这个应该换成用fumen text position来在已经serialized的timinglist里面找。。 然后直接去掉这个double的返回和position的入参。。。
@@ -646,10 +645,11 @@ public partial class MainWindow : Window
             SetBgmPosition(time);
         }
 
-        //Console.WriteLine("SelectionChanged");
+        //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
         SimaiProcess.ClearNoteListPlayedState();
         ghostCusorPositionTime = (float)time;
         if (!isPlaying) DrawWave();
+        findPosition = FumenContent.CaretIndex; //点击时刷新一下
 
         if (ShareMode)
         {
@@ -662,6 +662,7 @@ public partial class MainWindow : Window
         if (GetRawFumenText() == "" || isLoading) return;
         SetSavedState(false);
         await SyncChartServer();
+        RenderAllCursors();
         if (chartChangeTimer.Interval < 33)
         {
             SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
