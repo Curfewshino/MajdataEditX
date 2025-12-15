@@ -448,15 +448,7 @@ public partial class MainWindow : Window
 
     private void MenuFind_Click(object? sender, RoutedEventArgs e)
     {
-        if (FindGrid.Visibility == Visibility.Collapsed)
-        {
-            FindGrid.Visibility = Visibility.Visible;
-            InputText.Focus();
-        }
-        else
-        {
-            FindGrid.Visibility = Visibility.Collapsed;
-        }
+        ToggleFindGrid();
     }
 
     private void CheckUpdate_Click(object? sender, RoutedEventArgs e)
@@ -510,15 +502,7 @@ public partial class MainWindow : Window
 
     private void FindCommand_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
-        if (FindGrid.Visibility == Visibility.Collapsed)
-        {
-            FindGrid.Visibility = Visibility.Visible;
-            InputText.Focus();
-        }
-        else
-        {
-            FindGrid.Visibility = Visibility.Collapsed;
-        }
+        ToggleFindGrid();
     }
 
     private void MirrorLRCommand_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
@@ -625,7 +609,8 @@ public partial class MainWindow : Window
     private void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
         NoteNowText.Content = 
-            (FumenContent.SelectedText.Replace("\r", "").Count(o => o == '\n') + 1) + " 行";
+            (FumenContent.SelectedText //.Replace("\r", "") //没区别
+                                      .Count(o => o == '\n') + 1) + " 行";
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
         //TODO:这个应该换成用fumen text position来在已经serialized的timinglist里面找。。 然后直接去掉这个double的返回和position的入参。。。
@@ -651,7 +636,7 @@ public partial class MainWindow : Window
         if (!isPlaying) DrawWave();
         findPosition = FumenContent.CaretIndex; //点击时刷新一下
 
-        if (ShareMode)
+        if (ShareMode && !_isRemoteUpdate)
         {
             _client!.InvokeAsync(nameof(ChartHub.Moving), GetRawFumenPosition());
         }
@@ -661,18 +646,19 @@ public partial class MainWindow : Window
     {
         if (GetRawFumenText() == "" || isLoading) return;
         SetSavedState(false);
-        await SyncChartServer();
-        RenderAllCursors();
-        if (chartChangeTimer.Interval < 33)
-        {
-            SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
-            DrawWave();
-        }
-        else
-        {
-            chartChangeTimer.Stop();
-            chartChangeTimer.Start();
-        }
+        await SyncChartServer(); //立马同步，用了diff的原因，没那么卡
+
+        //间隔太小了不用管 话说为什么是33。
+        //if (chartChangeTimer.Interval < 33)
+        //{
+        //    SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
+        //    DrawWave();
+        //    return;
+        //}
+
+        //私以为没必要 真的有人注意过铺面刷新延迟吗。
+        chartChangeTimer.Stop();
+        chartChangeTimer.Start();
     }
 
     private void FumenContent_OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -687,11 +673,7 @@ public partial class MainWindow : Window
 
     private void FumenContent_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        // 只有当垂直滚动发生变化时才重绘
-        if (e.VerticalChange != 0 || e.ExtentHeightChange != 0)
-        {
-            RenderAllCursors();
-        }
+        RenderAllCursors();
     }
 
     #endregion

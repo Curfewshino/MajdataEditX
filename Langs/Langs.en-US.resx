@@ -232,7 +232,7 @@
     <value>Invalid BPM / Beat</value>
   </data>
   <data name="ConnectFail" xml:space="preserve">
-    <value>Connect failed!</value>
+    <value>Connect failed! reason: {0}</value>
   </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Close Viewer?</value>

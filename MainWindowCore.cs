@@ -522,6 +522,7 @@ public partial class MainWindow : Window
         AutoSaveManager.Of().SetAutoSaveEnable(false);
         isSaved = true;
         SyntaxCheck();
+        _shadowText = GetRawFumenText();
 
         SetShareMode(true);
     }
@@ -833,15 +834,15 @@ public partial class MainWindow : Window
     {
         Console.WriteLine("TextChanged");
         //SyntaxCheck(); //不要进行定期检查（疑似快速修改谱面内容时莫名其妙卡死原因）
-        Dispatcher.Invoke(
-            delegate
+        //太快=>异步=>在另外线程调用的原因。。被自己蠢笑啦
+        Dispatcher.Invoke(async () =>
             {
-                if (!ErrCount.Content.ToString()!.EndsWith("?"))
-                    SetErrCount(ErrCount.Content.ToString() + "?");
+                SyntaxCheck();
                 SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
                 DrawWave();
-            }
-        );
+                if (!ErrCount.Content.ToString()!.EndsWith("?"))
+                    SetErrCount(ErrCount.Content.ToString() + "?");
+            });
     }
 
     private void DrawFFT()
@@ -1920,22 +1921,61 @@ public partial class MainWindow : Window
                 var result = _dmp.patch_apply(patches, currentUiText);
                 string newText = (string)result[0];
 
-                // 保存光标位置
-                var savedIndex = GetRawFumenPosition();
-                // 简单的 Diff 修正
+                var cursor = GetRawFumenPosition();
+
                 foreach (var patch in patches)
                 {
-                    if (patch.start1 <= savedIndex)
+                    var patchStart = patch.start1;
+                    var patchEnd = patchStart + patch.length1;
+                    var lengthDiff = patch.length2 - patch.length1;
+
+                    // 补丁块完全在光标之后
+                    //（由于EQUAL diff，几个字符内会误判到覆盖光标，但是这样至少能快点）
+                    if (patchStart > cursor)
                     {
-                        savedIndex += (patch.length2 - patch.length1);
+                        continue;
+                    }
+
+                    // 补丁块完全在光标之前
+                    if (patchEnd <= cursor)
+                    {
+                        cursor += lengthDiff;
+                        continue; // 下一个补丁
+                    }
+
+                    // 补丁块覆盖了光标
+                    var currentPos = patchStart;
+                    foreach (var diff in patch.diffs)
+                    {
+                        int len = diff.text.Length;
+                        if (diff.operation == Operation.EQUAL)
+                        {
+                            currentPos += len;
+                        }
+                        else if (diff.operation == Operation.DELETE)
+                        {
+                            // 如果删除内容在光标后面就不用管（前文误判因素）
+                            if (currentPos > cursor) break;
+
+                            // 如果光标在被删除的区间内，回退到删除点起点
+                            if (currentPos + len > cursor) cursor = currentPos;
+                            else if (currentPos + len <= cursor) cursor -= len;
+                            currentPos += len;
+                        }
+                        else if (diff.operation == Operation.INSERT)
+                        {
+                            // 如果插入点在光标前，光标后移
+                            if (currentPos <= cursor) cursor += len;
+                        }
                     }
                 }
 
-                FumenContent.Text = _shadowText = newText;
-                SetRawFumenPosition(savedIndex);
+                FumenContent.Text = _shadowText = newText; // 这里的光标变化会被拦截不同步
                 FumenContent.Focus();
 
                 _isRemoteUpdate = false;
+
+                SetRawFumenPosition(cursor); // 这里的光标处理需要同步
             });
         });
         
@@ -2053,7 +2093,8 @@ public partial class MainWindow : Window
                 Text = cursor.UserName,
                 FontSize = 10,
                 Foreground = System.Windows.Media.Brushes.WhiteSmoke,
-                Padding = new Thickness(2, 0, 2, 0)
+                Padding = new Thickness(2, 0, 2, 0),
+                IsHitTestVisible = false
             };
 
             Canvas.SetLeft(cursorLine, screenPos.X);
@@ -2084,6 +2125,20 @@ public partial class MainWindow : Window
             }
         }
         return "127.0.0.1";
+    }
+
+    public void ToggleFindGrid()
+    {
+        if (FindGrid.Visibility == Visibility.Collapsed)
+        {
+            FindGrid.Visibility = Visibility.Visible;
+            InputText.Text = FumenContent.SelectedText;
+            InputText.Focus();
+        }
+        else
+        {
+            FindGrid.Visibility = Visibility.Collapsed;
+        }
     }
 
 
