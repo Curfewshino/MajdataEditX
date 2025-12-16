@@ -15,8 +15,7 @@ namespace MajdataEdit;
 public partial class LaunchMaiMuriDX : Window
 {
     RunArg RunArg { get; set; }
-    public List<Error> SErrorList { get; set; } = new();
-    public List<Error> TErrorList { get; set; } = new();
+    public List<Error> ErrorList { get; set; } = new();
     public LaunchMaiMuriDX(RunArg runArg)
     {
         InitializeComponent();
@@ -73,7 +72,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["cause"]["line"],
                             item["cause"]["col"]
                         ));
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
                 else if (item["type"] == "SlideHeadTap")
                 {
@@ -97,7 +96,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["cause"]["col"],
                             item["delta"] * 1000 / 180
                         ));
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
                 else if (item["type"] == "TapOnSlide")
                 {
@@ -121,7 +120,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["cause"]["col"],
                             item["delta"] * 1000 / 180
                         ));
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
             }
 
@@ -155,7 +154,7 @@ public partial class LaunchMaiMuriDX : Window
                             msg_notes
                         )
                         );
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
                 else if (item["type"] == "SlideTooFast")
                 {
@@ -174,7 +173,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["--msg_areas"]
                         )
                         );
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
                 else if (item["type"] == "Overlap")
                 {
@@ -191,7 +190,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["affected"]["col"],
                             item["delta"] * 1000 / 180
                         ));
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
                 else if (item["type"] == "SlideHeadTap")
                 {
@@ -212,7 +211,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["cause"]["col"],
                             item["delta"] * 1000 / 180
                         ));
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
                 else if (item["type"] == "TapOnSlide")
                 {
@@ -233,7 +232,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["cause"]["col"],
                             item["delta"] * 1000 / 180
                         ));
-                    SErrorList.Add(error);
+                    ErrorList.Add(error);
                 }
             }
         }

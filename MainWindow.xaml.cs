@@ -236,7 +236,7 @@ public partial class MainWindow : Window
     }
     private async void Menu_ToggleChartShare_Click(object sender, RoutedEventArgs e)
     {
-        await ToggleChartShare();
+        await ToggleChartShare(true);
     }
     private async void Menu_ConnectChartShare_Click(object sender, RoutedEventArgs e)
     {
@@ -247,7 +247,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            new ConnectShare(async (ip, port) =>
+            var window = new ConnectShare(async (ip, port) =>
             {
                 try
                 {
@@ -259,10 +259,14 @@ public partial class MainWindow : Window
                     _client = null;
                     return;
                 }
-
-            await Dispatcher.InvokeAsync(() =>
-                    Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare"));
-            }).ShowDialog();
+                await Dispatcher.InvokeAsync(() =>
+                        Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare"));
+            })
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this
+            };
+            window.ShowDialog();
         }
     }
 
@@ -378,7 +382,7 @@ public partial class MainWindow : Window
                 errorListWindow.ErrorListView.Items.RemoveAt(i);
             }
         }
-        var errList = lmmdWindow.SErrorList;
+        var errList = lmmdWindow.ErrorList;
         errList.ForEach(e =>
         {
             errorListWindow.ErrorListView.Items.Add(e);
@@ -400,8 +404,8 @@ public partial class MainWindow : Window
                 errorListWindow.ErrorListView.Items.RemoveAt(i);
             }
         }
-        var errList = SyntaxChecker.ErrorList;
-        errList.ForEach(e =>
+        var errListCopy = SyntaxChecker.ErrorList.ToList();
+        errListCopy.ForEach(e =>
         {
             errorListWindow.ErrorListView.Items.Add(e);
         });

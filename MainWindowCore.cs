@@ -133,6 +133,11 @@ public partial class MainWindow : Window
 
     private void SetRawFumenPosition(int positionX, int positionY)
     {
+        if (positionX < 0 || positionY < 0)
+        {
+            FumenContent.CaretIndex = FumenContent.Text.Length - 1;
+            return;
+        }
         var text = FumenContent.Text;
         int currentLine = 0;
         int currentIndex = 0;
@@ -224,8 +229,7 @@ public partial class MainWindow : Window
     public void ScrollToFumenContentSelection(int positionX, int positionY)
     {
         // 这玩意用于其他窗口来滚动Scroll 因为涉及到好多变量都是private的
-        FumenContent.CaretIndex =
-            FumenContent.GetCharacterIndexFromLineIndex(positionX) + positionY;
+        SetRawFumenPosition(positionX, positionY);
         FumenContent.Focus();
         Focus();
 
@@ -305,12 +309,11 @@ public partial class MainWindow : Window
         if (Cover.Visibility != Visibility.Visible)
             ((Storyboard)Resources["CoverShow"]).Begin();
 
-        if (ChartServer.App != null) await ToggleChartShare();
+        if (ShareMode) await ToggleChartShare();
 
-        soundSetting.Close();
         SaveSetting();
 
-        if (soundSetting != null) soundSetting.Close();
+        soundSetting?.Close();
         audioDir = "";
         maidataDir = "";
         //SetRawFumenText("");
@@ -1821,8 +1824,13 @@ public partial class MainWindow : Window
 
             SaveFumen(true);
             isHost = false;
-            await Task.WhenAll(_client!.StopAsync(), ChartServer.StopAsync());
-            _client = null;
+            
+            if (_client != null)
+            {
+                await _client!.StopAsync();
+                _client = null;
+            }
+            await ChartServer.StopAsync();
 
             TheWindow.Height -= 20;
             Global_Grid.RowDefinitions[2].Height = new GridLength(0); //hide status bar
@@ -1999,13 +2007,15 @@ public partial class MainWindow : Window
             });
         });
 
-        //客户端意外关闭
+        //客户端关闭
         _client.Closed += async (exception) =>
         {
             await Dispatcher.Invoke(async () =>
             {
-                string reason = exception != null ? exception.Message : "服务器已停止或网络中断";
-                MessageBox.Show(string.Format(GetLocalizedString("ConnectionClosed"), reason), GetLocalizedString("Error"));
+                if (exception != null)
+                {
+                    MessageBox.Show(string.Format(GetLocalizedString("ConnectionClosed"), exception.Message), GetLocalizedString("Error"));
+                }
 
                 _client = null;
                 await DisconnectToChartServer();
@@ -2019,6 +2029,7 @@ public partial class MainWindow : Window
             isHost = isHost
         });
         if (!isHost) Menu_ToggleChartShare.IsEnabled = false; //非房主不能套娃开房
+        Menu_AutosaveRecover.IsEnabled = false;
     }
 
     private async Task DisconnectToChartServer()
@@ -2035,6 +2046,7 @@ public partial class MainWindow : Window
         SetShareMode(false);
         //if (!isHost)
         Menu_ToggleChartShare.IsEnabled = true; //非房主不能套娃开房-恢复
+        Menu_AutosaveRecover.IsEnabled = true;
         ClearWindow();
     }
 
