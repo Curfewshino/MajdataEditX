@@ -1558,14 +1558,21 @@ public partial class MainWindow : Window
     {
         if (Process.GetProcessesByName("MajdataView").Length == 0 && Process.GetProcessesByName("Unity").Length == 0)
         {
-            var viewProcess = Process.Start("MajdataView.exe");
-            var setWindowPosTimer = new Timer(2000)
+            try
             {
-                AutoReset = false
-            };
-            setWindowPosTimer.Elapsed += SetWindowPosTimer_Elapsed;
-            setWindowPosTimer.Start();
-            return true;
+                var viewProcess = Process.Start("MajdataView.exe");
+                var setWindowPosTimer = new Timer(2000)
+                {
+                    AutoReset = false
+                };
+                setWindowPosTimer.Elapsed += SetWindowPosTimer_Elapsed;
+                setWindowPosTimer.Start();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         return false;
