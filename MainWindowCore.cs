@@ -3,14 +3,12 @@ using DiscordRPC;
 using MajdataEdit.AutoSaveModule;
 using MajdataEdit.ChartShare;
 using MajdataEdit.SyntaxModule;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Semver;
-using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -24,22 +22,18 @@ using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Xml.Linq;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WPFLocalizeExtension.Engine;
 using WPFLocalizeExtension.Extensions;
 using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
-using ColorConverter = System.Drawing.ColorConverter;
 using DashStyle = System.Drawing.Drawing2D.DashStyle;
 using Font = System.Drawing.Font;
 using LinearGradientBrush = System.Drawing.Drawing2D.LinearGradientBrush;
@@ -1890,6 +1884,7 @@ public partial class MainWindow : Window
         _client = new HubConnectionBuilder()
             .WithUrl(hubUrl)
             .WithAutomaticReconnect()
+
 #if DEBUG
             .WithServerTimeout(TimeSpan.FromMinutes(30))
             .WithKeepAliveInterval(TimeSpan.FromMinutes(1))

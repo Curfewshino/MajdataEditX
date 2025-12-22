@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MajdataEdit.ChartShare
+﻿namespace MajdataEdit.ChartShare
 {
     // 客户端接收的强类型接口定义（避免魔法字符串）
     public interface IEditorClient

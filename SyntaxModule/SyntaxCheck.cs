@@ -1,8 +1,4 @@
-﻿
-using System.Windows.Media.Animation;
-using System.Windows.Navigation;
-
-namespace MajdataEdit.SyntaxModule
+﻿namespace MajdataEdit.SyntaxModule
 {
     enum DirectionType
     {

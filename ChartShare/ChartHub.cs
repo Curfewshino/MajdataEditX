@@ -1,17 +1,4 @@
-﻿using DiscordRPC;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Win32;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using System.Windows.Markup;
+﻿using Microsoft.AspNetCore.SignalR;
 
 namespace MajdataEdit.ChartShare;
 

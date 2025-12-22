@@ -1,13 +1,7 @@
 ﻿using MajdataEdit.MaiMuriDX;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Python.Runtime;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
 
 namespace MajdataEdit;
 

@@ -13,12 +13,10 @@ using System.Media;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Un4seen.Bass;
-using WPFLocalizeExtension.Engine;
 using Timer = System.Timers.Timer;
 
 namespace MajdataEdit;

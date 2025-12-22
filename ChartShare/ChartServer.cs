@@ -1,12 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace MajdataEdit.ChartShare;
 
@@ -23,6 +17,8 @@ public static class ChartServer
         {
             options.ListenAnyIP(port);
         });
+
+        builder.Services.AddCors();
 
 #if DEBUG
         builder.Logging.ClearProviders();
@@ -41,6 +37,7 @@ public static class ChartServer
             options.KeepAliveInterval = TimeSpan.FromMinutes(15); //有容乃大
 #endif
         });
+
 
         App = builder.Build();
 
