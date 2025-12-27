@@ -116,6 +116,7 @@ public partial class MainWindow : Window
         if (content == null)
         {
             isLoading = false;
+            FumenContent.Text = "";
             return;
         }
 
@@ -147,7 +148,7 @@ public partial class MainWindow : Window
 
         int finalIndex = currentIndex + positionX;
 
-        FumenContent.Select(finalIndex, 0);
+        FumenContent.CaretIndex = finalIndex;
     }
 
     private int ToRawFumenPosition(int uiIndex)
@@ -1670,7 +1671,7 @@ public partial class MainWindow : Window
         OverrideModeTipsPopup.Visibility = fumenOverwriteMode ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void CheckUpdate(bool onStart = false)
+    private async Task CheckUpdate(bool onStart = false)
     {
         if (UpdateCheckLock) return;
         UpdateCheckLock = true;

@@ -48,19 +48,20 @@
                     if (simaiChart.Last().Replace("\n", "") == "E")//移除结尾E
                         simaiChart = simaiChart.SkipLast(1).ToArray();
                     else
-                        addInfo("", -1, -1, "SyntaxWarning");
+                        addInfo("", -1, 114514, "SyntaxWarning");
                 }
 
                 foreach (var s in simaiChart)
                 {
-                    string simaiStr = s.Replace("\n", "").Replace(" ", "");
+                    //这边的Col, Line太搞了（x
+                    string simaiStr = s.Replace("\n", "");
 
                     if (string.IsNullOrEmpty(s))
                         continue;
-                    if (s.Contains("\n"))
+                    if (s.Contains('\n'))
                     {
-                        line++;
-                        column = 1;
+                        line += s.Count(c => c == '\n');
+                        column = 0;
                     }
 
                     if (string.IsNullOrEmpty(simaiStr))
@@ -83,7 +84,7 @@
                             continue;
                         NoteSyntaxCheck(noteStr, column, line);
                     }
-                    column++;
+                    column += simaiStr.Length + 1; //include ,
                 }
             });
         }

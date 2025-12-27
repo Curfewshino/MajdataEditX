@@ -151,7 +151,7 @@
     <value />
   </data>
   <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
-    <value />
+    <value>[MultiTouch] 可能形成{0}押</value>
   </data>
   <data name="MuriDXDErrorMultiTouchDetail" xml:space="preserve">
     <value />
@@ -233,6 +233,9 @@
   </data>
   <data name="ConnectFail" xml:space="preserve">
     <value>Connect failed! reason: {0}</value>
+  </data>
+  <data name="ConnectionClosed" xml:space="preserve">
+    <value>Connection closed! reason: {0}</value>
   </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Close Viewer?</value>
@@ -497,7 +500,7 @@ Do you want to download the latest update of Majdata?</value>
     <value>Failed to fetch data, please check your internet connection.</value>
   </data>
   <data name="ChartRefreshDelay" xml:space="preserve">
-    <value>Chart Refresh Interval (ms)</value>
+    <value>Chart Refresh Delay (ms)</value>
   </data>
   <data name="AutoCheckUpdate" xml:space="preserve">
     <value>Auto Check Update on Startup</value>

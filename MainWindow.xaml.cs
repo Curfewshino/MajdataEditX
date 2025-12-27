@@ -1,7 +1,6 @@
 ﻿using DiscordRPC.Logging;
 using MajdataEdit.AutoSaveModule;
 using MajdataEdit.ChartShare;
-using MajdataEdit.MaiMuriDX;
 using MajdataEdit.SyntaxModule;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
@@ -38,7 +37,7 @@ public partial class MainWindow : Window
         errorListWindow = new();
     }
 
-    private void Window_Loaded(object sender, RoutedEventArgs e)
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         CheckAndStartView();
 
@@ -63,7 +62,7 @@ public partial class MainWindow : Window
         visualEffectRefreshTimer.Elapsed += VisualEffectRefreshTimer_Elapsed;
         waveStopMonitorTimer.Elapsed += WaveStopMonitorTimer_Elapsed;
 
-        if (editorSetting!.AutoCheckUpdate) CheckUpdate(true);
+        if (editorSetting!.AutoCheckUpdate) await CheckUpdate(true);
 
         //errorListWindow.ErrorListView.Items.Add(new Error(ErrorType.Info, new Position(3, 5), "666", "三个6"));
         errorListWindow.Owner = this;
@@ -453,9 +452,9 @@ public partial class MainWindow : Window
         ToggleFindGrid();
     }
 
-    private void CheckUpdate_Click(object? sender, RoutedEventArgs e)
+    private async void CheckUpdate_Click(object? sender, RoutedEventArgs e)
     {
-        CheckUpdate();
+        await CheckUpdate();
     }
 
     private void Menu_AutosaveRecover_Click(object? sender, RoutedEventArgs e)
@@ -611,7 +610,7 @@ public partial class MainWindow : Window
     private void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
         NoteNowText.Content = 
-            (FumenContent.SelectedText //.Replace("\r", "") //没区别
+            (FumenContent.Text[..FumenContent.CaretIndex] //.Replace("\r", "") //没区别
                                       .Count(o => o == '\n') + 1) + " 行";
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;

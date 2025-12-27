@@ -1,10 +1,8 @@
-﻿using MajdataEdit.MaiMuriDX;
-using Python.Runtime;
+﻿using Python.Runtime;
 using System.IO;
 using System.Windows;
 
 namespace MajdataEdit;
-
 
 public partial class LaunchMaiMuriDX : Window
 {
@@ -17,6 +15,25 @@ public partial class LaunchMaiMuriDX : Window
     }
 
     private void StartCheck_Button_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            LaunchCheck();
+            ((MainWindow)Owner).ShowMuriDXError(this);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message + "\n" + ex.StackTrace, MainWindow.GetLocalizedString("Error"));
+            return;
+        }
+        finally
+        {
+            PythonEngine.Shutdown();
+            Close();
+        }
+    }
+
+    private void LaunchCheck()
     {
         RunArg.render = (bool)RenderEnable_Checkbox.IsChecked!;
 
@@ -36,7 +53,7 @@ public partial class LaunchMaiMuriDX : Window
             sys.path.insert(0, home);
             dynamic main = Py.Import("main");
             PyObject pyArg = RunArg.ToPython();
-            dynamic result = main.c_run(pyArg); 
+            dynamic result = main.c_run(pyArg);
             s = result[0];
             t = result[1];
 
@@ -50,7 +67,7 @@ public partial class LaunchMaiMuriDX : Window
                     error = new Error(ErrorType.MuriDXS,
                         new Position((int)item["affected"]["col"], (int)item["affected"]["line"]),
                             string.Format(
-                                I18N("MuriDXSErrorOverlap"), 
+                                I18N("MuriDXSErrorOverlap"),
                                 item["affected"]["note"],
                                 item["cause"]["note"]
                             ),
@@ -60,7 +77,7 @@ public partial class LaunchMaiMuriDX : Window
                             item["affected"]["combo"],
                             item["affected"]["note"],
                             item["affected"]["line"],
-                            item["affected"]["col"], 
+                            item["affected"]["col"],
                             item["cause"]["combo"],
                             item["cause"]["note"],
                             item["cause"]["line"],
@@ -130,7 +147,7 @@ public partial class LaunchMaiMuriDX : Window
                 if (item["type"] == "MultiTouch")
                 {
                     string msg_notes = "";
-                    foreach (var note in item["cause"]) 
+                    foreach (var note in item["cause"])
                     {
                         msg_notes += string.Format(
                             "\"{2}\"(L{0},C{1})",
@@ -230,9 +247,6 @@ public partial class LaunchMaiMuriDX : Window
                 }
             }
         }
-        PythonEngine.Shutdown();
-        ((MainWindow)Owner).ShowMuriDXError(this);
-        Close();
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
