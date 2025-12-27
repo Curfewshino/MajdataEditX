@@ -178,7 +178,7 @@ public partial class MainWindow
     private void generateSoundEffectList(double startTime, bool isOpIncluded)
     {
         waitToBePlayed = new List<SoundEffectTiming>();
-        if (isOpIncluded)
+        if (isOpIncluded && !ShareMode)
         {
             var cmds = SimaiProcess.other_commands!.Split('\n');
             foreach (var cmdl in cmds)

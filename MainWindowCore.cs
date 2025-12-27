@@ -61,7 +61,7 @@ public partial class MainWindow : Window
 
     //float[] wavedBs;
     private readonly short[][] waveRaws = new short[3][];
-    public Timer chartChangeTimer = new(1000); // 谱面变更延迟解析]\
+    public Timer chartChangeTimer = new(1000); // 谱面变更延迟解析
     private readonly Timer currentTimeRefreshTimer = new(100);
 
     public DiscordRpcClient DCRPCclient = new("1068882546932326481");
@@ -103,10 +103,13 @@ public partial class MainWindow : Window
 
     private Dictionary<string, RemoteCursor> _cursors = new();
 
-    //*TEXTBOX CONTROL
-    private string GetRawFumenText() => FumenContent.Text.Replace("\r", "");
+    //*TEXT CONTROL
+    //内部完全用不含\r的文本来处理，牺牲一点性能换取牺牲一点可读性（bushi
 
-    private void SetRawFumenText(string content)
+    private string GetRawFumenText() => FumenContent.Text.Replace("\r", "");
+    private void SetRawFumenText(string content) => FumenContent.Text = content.Replace("\r", "");
+    //不触发TextChanged
+    private void LoadRawFumenText(string content)
     {
         isLoading = true;
 
@@ -120,9 +123,7 @@ public partial class MainWindow : Window
 
         isLoading = false;
     }
-
     private int GetRawFumenPosition() => ToRawFumenPosition(FumenContent.CaretIndex);
-
     private void SetRawFumenPosition(int position) => FumenContent.Select(ToUiIndex(position), 0);
 
     private void SetRawFumenPosition(int positionX, int positionY)
@@ -263,7 +264,7 @@ public partial class MainWindow : Window
 
     public void FindAndScroll()
     {
-        string content = FumenContent.Text;
+        string content = FumenContent.Text; //这里完全依赖UI元素，不管Raw是什么了
         string keyword = InputText.Text;
 
         // 为空
@@ -353,7 +354,7 @@ public partial class MainWindow : Window
 
         maidataDir = path;
         SafeTerminationDetector.Of().ChangePath(maidataDir);
-        SetRawFumenText("");
+        LoadRawFumenText("");
         if (bgmStream != -1024)
         {
             Bass.BASS_ChannelStop(bgmStream);
@@ -400,7 +401,7 @@ public partial class MainWindow : Window
 
         LevelSelector.SelectedItem = LevelSelector.Items[0];
         ReadSetting();
-        SetRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
+        LoadRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
         SeekTextFromTime();
         SimaiProcess.Serialize(GetRawFumenText());
         FumenContent.Focus();
@@ -432,7 +433,11 @@ public partial class MainWindow : Window
 
         useOgg = data.UseOgg;
 
-        HttpClient httpClient = new();
+        HttpClient httpClient = new(new HttpClientHandler
+        {
+            // 忽略所有证书错误
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        });
 
         // 下载音频
         var trackName = "track" + (useOgg ? ".ogg" : ".mp3");
@@ -451,7 +456,7 @@ public partial class MainWindow : Window
         if (isHost) originMaidataDir = maidataDir;
         maidataDir = basePath;
         audioDir = localAudioPath;
-        SetRawFumenText("");
+        LoadRawFumenText("");
         if (bgmStream != -1024)
         {
             Bass.BASS_ChannelStop(bgmStream);
@@ -499,7 +504,7 @@ public partial class MainWindow : Window
         Bass.BASS_ChannelSetAttribute(hanabiStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
         Bass.BASS_ChannelSetAttribute(holdRiserStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
 
-        SetRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
+        LoadRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
         SeekTextFromTime();
         SimaiProcess.Serialize(GetRawFumenText());
         FumenContent.Focus();
@@ -519,7 +524,7 @@ public partial class MainWindow : Window
         AutoSaveManager.Of().SetAutoSaveEnable(false);
         isSaved = true;
         SyntaxCheck();
-        _shadowText = GetRawFumenText();
+        _shadowText = FumenContent.Text; // 影子文本和UI直接挂钩，没必要用不带\r的
 
         SetShareMode(true);
     }
@@ -1878,17 +1883,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        string hubUrl = $"http://{ip}:{port}/chartHub";
-        string fileUrl = $"http://{ip}:{port}/chartFiles";
+        string hubUrl = $"https://{ip}:{port}/chartHub";
+        string fileUrl = $"https://{ip}:{port}/chartFiles";
 
         _client = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
-            .WithAutomaticReconnect()
+            .WithUrl(hubUrl, options =>
+            {
+                // 忽略所有证书错误
+                options.HttpMessageHandlerFactory = (handler) =>
+                {
+                    if (handler is HttpClientHandler clientHandler)
+                    {
+                        clientHandler.ServerCertificateCustomValidationCallback =
+                            (message, cert, chain, errors) => true;
+                    }
+                    return handler;
+                };
 
-#if DEBUG
-            .WithServerTimeout(TimeSpan.FromMinutes(30))
-            .WithKeepAliveInterval(TimeSpan.FromMinutes(1))
-#endif
+                options.WebSocketConfiguration = sockets =>
+                {
+                    sockets.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => true;
+                };
+            })
             .Build();
 
 
@@ -1980,7 +1996,9 @@ public partial class MainWindow : Window
                     }
                 }
 
-                FumenContent.Text = _shadowText = newText; // 这里的光标变化会被拦截不同步
+                SetRawFumenText(newText); // 这里的光标变化会被拦截不同步
+                _shadowText = newText;
+
                 FumenContent.Focus();
 
                 _isRemoteUpdate = false;
@@ -2049,6 +2067,7 @@ public partial class MainWindow : Window
         //if (!isHost)
         Menu_ToggleChartShare.IsEnabled = true; //非房主不能套娃开房-恢复
         Menu_AutosaveRecover.IsEnabled = true;
+        _cursors.Clear();
         ClearWindow();
     }
 

@@ -549,7 +549,7 @@ public partial class MainWindow : Window
     private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var i = LevelSelector.SelectedIndex;
-        SetRawFumenText(SimaiProcess.fumens[i]);
+        LoadRawFumenText(SimaiProcess.fumens[i]);
         selectedDifficulty = i;
         LevelTextBox.Text = SimaiProcess.levels[selectedDifficulty];
         SetSavedState(true);
