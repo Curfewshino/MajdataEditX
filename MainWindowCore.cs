@@ -318,6 +318,19 @@ public partial class MainWindow : Window
         LevelSelector.SelectedItem = "";
         OffsetTextBox.Text = "";
 
+        // Stop
+        Op_Button.IsEnabled = true;
+        isPlaying = false;
+        isPlan2Stop = false;
+        FumenContent.Focus();
+        PlayAndPauseButton.Content = "▶";
+        Bass.BASS_ChannelStop(bgmStream);
+        Bass.BASS_ChannelStop(holdRiserStream);
+        //soundEffectTimer.Stop();
+        waveStopMonitorTimer.Stop();
+        visualEffectRefreshTimer.Stop();
+        sendRequestStop();
+
         //Cover.Visibility = Visibility.Visible;
         MenuEdit.IsEnabled = false;
         VolumnSetting.IsEnabled = false;
