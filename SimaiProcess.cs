@@ -171,7 +171,6 @@ internal static class SimaiProcess
                     Xcount++;
                 }
 
-                if (i - 1 < position) requestedTime = time;
                 if (text[i] == '(')
                     //Get bpm
                 {
@@ -272,6 +271,9 @@ internal static class SimaiProcess
                     //Console.WriteLine(time);
                     haveNote = false;
                 }
+
+                if (i - 1 < position)
+                    requestedTime = time;
             }
 
             notelist = _notelist;
