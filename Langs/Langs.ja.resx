@@ -190,13 +190,13 @@
     <value />
   </data>
   <data name="DisconnectChartShare" xml:space="preserve">
-    <value />
+    <value>Disconnect to Share</value>
   </data>
   <data name="ConnectChartShare" xml:space="preserve">
-    <value />
+    <value>Connect to Share</value>
   </data>
   <data name="CloseChart" xml:space="preserve">
-    <value />
+    <value>Close Chart</value>
   </data>
   <data name="ShareModeServer" xml:space="preserve">
     <value />
@@ -214,23 +214,28 @@
     <value />
   </data>
   <data name="ConnectIP" xml:space="preserve">
-    <value />
+    <value>IP Address</value>
   </data>
   <data name="ConnectPort" xml:space="preserve">
-    <value />
+    <value>Port</value>
   </data>
   <data name="ConnectToView" xml:space="preserve">
-    <value />
+    <value>Connect To View</value>
   </data>
   <data name="Connect" xml:space="preserve">
-    <value />
+    <value>Connect</value>
   </data>
   <data name="UserJoined" xml:space="preserve">
     <value />
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="InvalidBPMBeat" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="InvalidBPMBeat" xml:space="preserve">
+    <value>Invalid BPM / Beat</value>
+  </data>
+  <data name="ConnectFail" xml:space="preserve">
+    <value>Connect failed! reason: {0}</value>
+  </data>
+  <data name="ConnectionClosed" xml:space="preserve">
+    <value>Connection closed! reason: {0}</value>
   </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Viewを閉しますか？</value>
@@ -522,7 +527,7 @@ Open Browser to download latest update of Majdata?</value>
     <comment>Translation required</comment>
   </data>
   <data name="AutoCheckUpdate" xml:space="preserve">
-    <value>Auto Check Update (when start)</value>
+    <value>Auto Check Update on Startup</value>
     <comment>Translation required</comment>
   </data>
   <data name="SetToDefaultVolume" xml:space="preserve">

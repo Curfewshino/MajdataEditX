@@ -151,10 +151,11 @@
     <value />
   </data>
   <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
-    <value>[MultiTouch] 可能形成{0}押</value>
+    <value>[MultiTouch] There may be {0} each notes</value>
   </data>
   <data name="MuriDXDErrorMultiTouchDetail" xml:space="preserve">
-    <value />
+    <value>{0}[MultiTouch] There may be {1} each notes.They are:
+    {2}</value>
   </data>
   <data name="MuriDXDErrorSlideTooFast" xml:space="preserve">
     <value />

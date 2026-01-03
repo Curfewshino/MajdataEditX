@@ -23,6 +23,9 @@
       <None Remove="Resources\bg_dummy.jpg" />
       <None Remove="Resources\outline_find_replace_white_24dp.png" />
       <None Remove="Resources\outline_search_white_24dp.png" />
+	  <None Include="server.pfx">
+	  	<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
     </ItemGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />

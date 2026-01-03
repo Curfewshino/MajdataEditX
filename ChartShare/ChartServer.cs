@@ -23,7 +23,7 @@ public static class ChartServer
             {
                 lOptions.UseHttps(httpsOptions =>
                 {
-                    httpsOptions.ServerCertificate = GetOrGenerateCert();
+                    httpsOptions.ServerCertificate = GetCert();
                 });
             });
         });
@@ -32,7 +32,8 @@ public static class ChartServer
         builder.Services.AddSingleton(chartData);
 
         // 注册 SignalR 服务
-        builder.Services.AddSignalR(options => {
+        builder.Services.AddSignalR(options =>
+        {
             options.MaximumReceiveMessageSize = 1024 * 1024 * 8; // 8 MB
         });
 
@@ -79,52 +80,12 @@ public static class ChartServer
         }
     }
 
-    private static X509Certificate2 GetOrGenerateCert()
+    private static X509Certificate2 GetCert()
     {
-        string certPath = "chart_share.pfx";
+        string certPath = "server.pfx";
         string password = "chart_share";
-
-        if (File.Exists(certPath))
-        {
-            // 从文件加载时，必须指定存储标志，否则 Kestrel 无法访问私钥
-            return new X509Certificate2(certPath, password,
-                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet);
-        }
-        else
-        {
-            using var newCert = CreateCert();
-
-            byte[] certData = newCert.Export(X509ContentType.Pfx, password);
-            File.WriteAllBytes(certPath, certData);
-
-            return new X509Certificate2(certData, password,
-                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet);
-        }
-    }
-
-    private static X509Certificate2 CreateCert()
-    {
-        using RSA rsa = RSA.Create(2048);
-        var request = new CertificateRequest(
-            "CN=Majdata-ChartShare",
-            rsa,
-            HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pkcs1);
-
-        var sanBuilder = new SubjectAlternativeNameBuilder();
-        sanBuilder.AddDnsName("localhost");        // localhost
-        sanBuilder.AddIpAddress(System.Net.IPAddress.Loopback); // 127.0.0.1
-        sanBuilder.AddIpAddress(System.Net.IPAddress.Any);      // 0.0.0.0
-        request.CertificateExtensions.Add(sanBuilder.Build());
-
-        request.CertificateExtensions.Add(
-            new X509EnhancedKeyUsageExtension(
-                new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
-
-        var cert = request.CreateSelfSigned(
-            DateTimeOffset.Now.AddDays(-1),
-            DateTimeOffset.Now.AddYears(100));
-
-        return cert;
+        // 从文件加载时，必须指定存储标志，否则 Kestrel 无法访问私钥
+        return new X509Certificate2(certPath, password,
+            X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet);
     }
 }
