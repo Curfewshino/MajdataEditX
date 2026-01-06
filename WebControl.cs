@@ -29,16 +29,23 @@ internal static class WebControl
         }
     }
 
-    public static string RequestGETAsync(string url)
+    public static async Task<string> RequestGETAsync(string url)
     {
-        var executingAssembly = Assembly.GetExecutingAssembly();
-        
-        using var httpClient = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("User-Agent", $"{executingAssembly.GetName().Name!} / {executingAssembly.GetName().Version!.ToString(3)}");
-        var response = httpClient.Send(request);
-        using var reader = new StreamReader(response.Content.ReadAsStream());
+        try
+        {
+            var executingAssembly = Assembly.GetExecutingAssembly();
 
-        return reader.ReadToEnd();
+            using var httpClient = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("User-Agent", $"{executingAssembly.GetName().Name!} / {executingAssembly.GetName().Version!.ToString(3)}");
+
+            var response = await httpClient.SendAsync(request);
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch
+        {
+            return "ERROR";
+        }
     }
 }

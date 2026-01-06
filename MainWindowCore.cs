@@ -1751,6 +1751,12 @@ public partial class MainWindow : Window
         void requestHandler(string response)
         {
             UpdateCheckLock = false;
+            if (response == "ERROR")
+            {
+                // 网络请求失败
+                if (!onStart) MessageBox.Show(GetLocalizedString("RequestFail"), GetLocalizedString("CheckUpdate"));
+                return;
+            }
 
             var resJson = JsonConvert.DeserializeObject<JObject>(response)!;
             var latestVersionString = resJson["tag_name"]!.ToString();
@@ -1793,14 +1799,7 @@ public partial class MainWindow : Window
 
         // 检查是否需要更新软件
 
-        try
-        {
-            requestHandler(
-                WebControl.RequestGETAsync("http://api.github.com/repos/re-poem/MajdataViewX/releases/latest"));
-        } catch {
-            // 网络请求失败
-            if (!onStart) MessageBox.Show(GetLocalizedString("RequestFail"), GetLocalizedString("CheckUpdate"));
-        }
+        requestHandler(await WebControl.RequestGETAsync("http://api.github.com/repos/re-poem/MajdataViewX/releases/latest"));
     }
 
     public string GetWindowsTitleString()
@@ -1922,7 +1921,10 @@ public partial class MainWindow : Window
 
                 options.WebSocketConfiguration = sockets =>
                 {
-                    sockets.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => true;
+                    sockets.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => {
+                        if (cert == null) return false;
+                        return cert.GetPublicKeyString() == "3082020A0282020100A26C4693BA0AB5942848E8A54324AEAA8A743B5CE954F131D8D4449CAB9D0C3BDFA8A6A9C9E75AA8404D7924C38B2CDBE784D59CB53B6DFB81377D87EF9C5B3E030930C9CA8A94BD7D6F79F3086D2D30C09719AAB568D71A1788E4A20B7A5E1BACA82E9F17B773ACDE50C43036CEBCCA8595C45CCBCCBC75DD17E5A2B360C2F9F4556C610C960D0609D46E724E8B17AC5DEEC51897A5BE3464A824AECD60E0FB1EFEED7047BF769F9F046223E527FCB80FE1FC0494757D8003417427FDF8892D34F7A21ED5909D6C204E1CC38FF1DFD7612850754BBB6C6C50745AC7D7C9990A5300A6280F0C628CA217215351280F45906AC976CA09E3F21080C47B51BB562BCE8A01E6700636ED9305C02A1EA2BD7DE34A51252F0C6CB6ED2A5F0BD3FC2B7C5F4B231B31D1DBA5BFD963C3614D66F3056427F94147B5A21BD0705429F3E8A499D3A7795DACD209842FEB72D8746775E8613C840C0B53BFDCAE066A9E6B2B8FCE7D4BA11AFEF9955EC23662E649C20FA0BA3476E009892BD4FC2FABA09C5A60DE4FEAD30A7337F97CBB0485AAB83A1F32B39C289C41D2CBB09829430AA44FC20C8509C7521556EF2A2EF40E52087DDE1FD0E56693C21D166F4F1C5ADA96189A2611A01DB44A39CBA156F054293F6A08A317378F41C00496A114336737A2FAB8268604FD32DF655A992614286EC933B22227BC2FD2FA1FD42BCD9DFB3F79C7050203010001";
+                    };
                 };
             })
             .Build();

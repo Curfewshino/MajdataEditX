@@ -340,3 +340,5 @@ ASALocalRun/
 healthchecksdb
 /MaiMuriDX
 /images
+/server.crt
+/server.pem
