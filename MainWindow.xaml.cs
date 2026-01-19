@@ -704,17 +704,22 @@ public partial class MainWindow : Window
     {
         if (GetRawFumenText() == "" || isLoading) return;
         SetSavedState(false);
-        await SyncChartServer(); //立马同步，用了diff的原因，没那么卡
+        await SyncChartServer();
 
-        //间隔太小了不用管 话说为什么是33。
-        //if (chartChangeTimer.Interval < 33)
-        //{
-        //    SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
-        //    DrawWave();
-        //    return;
-        //}
+        // For small changes (typing notes/slides), update immediately
+        if (e.Changes.Count <= 2) // Small edit
+        {
+            _ = Task.Run(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
+                    DrawWave();
+                });
+            });
+        }
 
-        //私以为没必要 真的有人注意过铺面刷新延迟吗。
+        // Still use timer for syntax check (expensive operation)
         chartChangeTimer.Stop();
         chartChangeTimer.Start();
     }
