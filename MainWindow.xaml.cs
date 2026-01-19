@@ -609,15 +609,75 @@ public partial class MainWindow : Window
 
     private void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
-        NoteNowText.Content = 
-            (FumenContent.Text[..FumenContent.CaretIndex] //.Replace("\r", "") //没区别
+        NoteNowText.Content =
+            (FumenContent.Text[..FumenContent.CaretIndex]
                                       .Count(o => o == '\n') + 1) + " 行";
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
-        //TODO:这个应该换成用fumen text position来在已经serialized的timinglist里面找。。 然后直接去掉这个double的返回和position的入参。。。
-        var time = SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
 
-        //按住Ctrl，同时按下鼠标左键/上下左右方向键时，才改变进度，其他包含Ctrl的组合键不影响进度。
+        // Get raw position info
+        var rawPos = GetRawFumenPosition();
+        var text = GetRawFumenText();
+        var textUpToCursor = text.Substring(0, Math.Min(rawPos, text.Length));
+        int currentLine = textUpToCursor.Count(c => c == '\n');
+        int lastNewlinePos = textUpToCursor.LastIndexOf('\n');
+        int currentCol = lastNewlinePos >= 0 ? rawPos - lastNewlinePos - 1 : rawPos;
+
+        // Find the note whose position matches where SeekTextFromTime would put the cursor
+        // SeekTextFromTime does: SetRawFumenPosition(theNote.rawTextPositionX - 1, theNote.rawTextPositionY)
+        // So we need to find a note where (rawTextPositionX - 1) == currentCol
+
+        SimaiTimingPoint? targetNote = null;
+        double time = 0;
+
+        foreach (var note in SimaiProcess.timinglist)
+        {
+            if (note.rawTextPositionY == currentLine)
+            {
+                int noteCursorPos = note.rawTextPositionX - 1;
+
+                // Check if cursor is exactly at this note's position
+                if (currentCol == noteCursorPos)
+                {
+                    targetNote = note;
+                    time = note.time;
+                    break;
+                }
+                // If cursor is between notes or after last note on this line
+                else if (currentCol < noteCursorPos && targetNote == null)
+                {
+                    // We're before this note, so use previous note if exists
+                    // Don't set targetNote, will use Serialize fallback
+                    break;
+                }
+                else if (currentCol > noteCursorPos)
+                {
+                    // We're past this note, keep it as candidate (might be the right one)
+                    targetNote = note;
+                    time = note.time;
+                }
+            }
+            else if (note.rawTextPositionY > currentLine)
+            {
+                // Gone past our line
+                break;
+            }
+            else if (note.rawTextPositionY < currentLine)
+            {
+                // Still on previous lines, keep this as candidate
+                targetNote = note;
+                time = note.time;
+            }
+        }
+
+        // If we didn't find a good note, fall back to Serialize
+        if (targetNote == null)
+        {
+            time = SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
+        }
+
+        ghostCusorPositionTime = (float)time;
+
         if (Keyboard.Modifiers == ModifierKeys.Control && (
                 Mouse.LeftButton == MouseButtonState.Pressed ||
                 Keyboard.IsKeyDown(Key.Left) ||
@@ -631,12 +691,9 @@ public partial class MainWindow : Window
             SetBgmPosition(time);
         }
 
-        //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
         SimaiProcess.ClearNoteListPlayedState();
-        ghostCusorPositionTime = (float)time;
         if (!isPlaying) DrawWave();
-        findPosition = FumenContent.CaretIndex; //点击时刷新一下
-
+        findPosition = FumenContent.CaretIndex;
         if (ShareMode && !_isRemoteUpdate)
         {
             _client!.InvokeAsync(nameof(ChartHub.Moving), GetRawFumenPosition());
